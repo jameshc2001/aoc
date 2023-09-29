@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("com.google.truth:truth:1.1.4")
 }
 
 tasks.test {
