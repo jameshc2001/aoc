@@ -8,11 +8,7 @@ class Day2 {
         enum class Move {
             ROCK, PAPER, SCISSORS;
 
-            fun score(): Int = when (this) {
-                ROCK -> 1
-                PAPER -> 2
-                SCISSORS -> 3
-            }
+            fun score(): Int = this.ordinal + 1
 
             companion object {
                 fun fromString(value: String) = when (value) {
