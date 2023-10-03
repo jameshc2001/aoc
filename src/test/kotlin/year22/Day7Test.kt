@@ -2,6 +2,8 @@ package year22
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
+import year22.Day7.Companion.smallestDeleteToAchieveSize
+import year22.Day7.Companion.sumOfDirsAtMostSize
 import year22.Day7.Directory
 import year22.Day7.File
 
@@ -34,8 +36,31 @@ class Day7Test {
                 )
             )
         )
-        println(rootDirectory)
         assertThat(rootDirectory).isEqualTo(expectedDirectory)
+    }
+
+    @Test
+    fun `can find sum of sizes of all directories with size less than 100000`() {
+        val rootDir = Day7.generateRootDirectory(sampleInput)
+        assertThat(rootDir.sumOfDirsAtMostSize(100000)).isEqualTo(95437)
+    }
+
+    @Test
+    fun `can get answer for part 1 using question data`() {
+        val input = Day7::class.java.getResourceAsStream("/year22/day7.txt")!!.bufferedReader().readText()
+        assertThat(sumOfDirsAtMostSize(input, 100000)).isEqualTo(1543140)
+    }
+
+    @Test
+    fun `find size of smallest directory to delete to achieve at least 30000000 free space`() {
+        val rootDir = Day7.generateRootDirectory(sampleInput)
+        assertThat(rootDir.smallestDeleteToAchieveSize(30000000)).isEqualTo(24933642)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question data`() {
+        val input = Day7::class.java.getResourceAsStream("/year22/day7.txt")!!.bufferedReader().readText()
+        assertThat(smallestDeleteToAchieveSize(input, 30000000)).isEqualTo(1117448)
     }
 
     private val sampleInput = """
