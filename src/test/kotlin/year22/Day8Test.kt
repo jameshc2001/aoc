@@ -13,11 +13,15 @@ class Day8Test {
             30
             25
         """.trimIndent()
-        val expectedTreeGrid = mapOf(
-            Coordinate(0, 0) to 3,
-            Coordinate(1, 0) to 0,
-            Coordinate(0, 1) to 2,
-            Coordinate(1, 1) to 5,
+        val expectedTreeGrid = Day8.TreeGrid(
+            mapOf(
+                Coordinate(0, 0) to 3,
+                Coordinate(1, 0) to 0,
+                Coordinate(0, 1) to 2,
+                Coordinate(1, 1) to 5,
+            ),
+            2,
+            2
         )
         assertThat(Day8.createTreeGrid(input)).isEqualTo(expectedTreeGrid)
     }
