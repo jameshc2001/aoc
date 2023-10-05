@@ -17,13 +17,25 @@ class Day8 {
 
         fun Map<Coordinate, Int>.treeIsVisible(coordinate: Coordinate): Boolean {
             val treeHeight = this[coordinate]!!
+            val importantTrees = this.filter { it.key.x == coordinate.x || it.key.y == coordinate.y }
 
-            val above = this.filter { it.key.x == coordinate.x && it.key.y > coordinate.y }.filterNot { it.value < treeHeight }
-            val below = this.filter { it.key.x == coordinate.x && it.key.y < coordinate.y }.filterNot { it.value < treeHeight }
-            val right = this.filter { it.key.y == coordinate.y && it.key.x > coordinate.x }.filterNot { it.value < treeHeight }
-            val left = this.filter { it.key.y == coordinate.y && it.key.x < coordinate.x }.filterNot { it.value < treeHeight }
+            val above = importantTrees.asSequence()
+                .filter { it.key.x == coordinate.x && it.key.y > coordinate.y }
+                .filter { it.value >= treeHeight }
+            val below = importantTrees.asSequence()
+                .filter { it.key.x == coordinate.x && it.key.y < coordinate.y }
+                .filter { it.value >= treeHeight }
+            val right = importantTrees.asSequence()
+                .filter { it.key.y == coordinate.y && it.key.x > coordinate.x }
+                .filter { it.value >= treeHeight }
+            val left = importantTrees.asSequence()
+                .filter { it.key.y == coordinate.y && it.key.x < coordinate.x }
+                .filter { it.value >= treeHeight }
 
-            return above.isEmpty() || below.isEmpty() || right.isEmpty() || left.isEmpty()
+            return above.toList().isEmpty() ||
+                below.toList().isEmpty() ||
+                left.toList().isEmpty() ||
+                right.toList().isEmpty()
         }
 
         private fun Map<Coordinate, Int>.totalVisibleTrees(): Int = this.filter { this.treeIsVisible(it.key) }.size
