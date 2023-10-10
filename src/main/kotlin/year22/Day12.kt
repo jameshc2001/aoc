@@ -1,6 +1,7 @@
 package year22
 
 import year22.Day12.Coordinate
+import java.util.PriorityQueue
 
 typealias D12Graph = Map<Coordinate, Set<Coordinate>>
 
@@ -70,12 +71,15 @@ class Day12 {
             val previous: MutableMap<Coordinate, Coordinate?> = graph.keys.associateWith { null }.toMutableMap()
 
             distances[start] = 0
-            val unexploredVertices: MutableSet<Coordinate> = graph.keys.toMutableSet()
+            val unexploredVertices = PriorityQueue(
+                graph.keys.size,
+                compareBy { coordinate: Coordinate -> distances[coordinate]!! }
+            )
+            graph.keys.forEach { unexploredVertices.add(it) }
 
             while (unexploredVertices.isNotEmpty()) {
-                val currentVertex = unexploredVertices.minBy { distances[it]!! }
+                val currentVertex = unexploredVertices.poll()
                 if (currentVertex == end) break
-                unexploredVertices.remove(currentVertex)
 
                 graph[currentVertex]!!
                     .filter { it in unexploredVertices }
@@ -84,6 +88,8 @@ class Day12 {
                         if (distance < distances[neighbour]!!) {
                             distances[neighbour] = distance
                             previous[neighbour] = currentVertex
+                            unexploredVertices.remove(neighbour)
+                            unexploredVertices.add(neighbour)
                         }
                     }
             }
