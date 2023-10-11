@@ -31,7 +31,7 @@ class Day13 {
                         currentList.add(newList)
                     }
                     c.isDigit() && (index == 0 || (trimmed[index - 1] in listOf('[', ','))) -> {
-                        currentList.add(getInteger(index, trimmed))
+                        currentList.add(trimmed.getIntegerAt(index))
                     }
                 }
             }
@@ -39,10 +39,10 @@ class Day13 {
             return currentList
         }
 
-        private fun getInteger(index: Int, input: String): Integer {
+        private fun String.getIntegerAt(index: Int): Integer {
             var end = index
-            while (input[end].isDigit()) end++
-            return Integer(input.substring(index, end).toInt())
+            while (this[end].isDigit()) end++
+            return Integer(substring(index, end).toInt())
         }
     }
 
