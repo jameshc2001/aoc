@@ -7,10 +7,23 @@ import kotlin.math.min
 class Day13 {
 
     sealed class PacketValue {
+
         data class Integer(val value: Int): PacketValue()
-        data class Packet(val list: MutableList<PacketValue>): PacketValue() {
+
+        data class Packet(val list: MutableList<PacketValue>): PacketValue(), Comparable<Packet> {
+
             constructor(vararg values: PacketValue): this(values.toMutableList())
+
             fun add(value: PacketValue) = list.add(value)
+
+            override fun compareTo(other: Packet): Int {
+                val inOrder = packetsAreInOrderRecursive(this, other)
+                return when (inOrder) {
+                    null -> 0
+                    true -> 1
+                    false -> -1
+                }
+            }
         }
     }
 
@@ -79,6 +92,18 @@ class Day13 {
             .mapIndexed { index, (left, right) -> index to packetsAreInOrder(left, right) }
             .filter { (_, inOrder) -> inOrder }
             .sumOf { (index, _) -> index + 1 }
-    }
 
+        fun productOfDividerIndices(input: String): Int {
+            val firstDivider = parsePacket("[[2]]")
+            val secondDivider = parsePacket("[[6]]")
+            val sortedPackets = input
+                .replace("\r", "")
+                .replace("\n\n", "\n")
+                .lines()
+                .map { parsePacket(it) }
+                .plus(listOf(firstDivider, secondDivider))
+                .sortedDescending()
+            return (sortedPackets.indexOf(firstDivider) + 1) * (sortedPackets.indexOf(secondDivider) + 1)
+        }
+    }
 }

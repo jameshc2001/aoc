@@ -62,6 +62,17 @@ class Day13Test {
         assertThat(Day13.sumOfIndicesOfInOrderPackets(input)).isEqualTo(4734)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day13.productOfDividerIndices(sampleInput)).isEqualTo(140)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day13::class.java.getResourceAsStream("/year22/day13.txt")!!.bufferedReader().readText()
+        assertThat(Day13.productOfDividerIndices(input)).isEqualTo(21836)
+    }
+
     private val sampleInput = """
         [1,1,3,1,1]
         [1,1,5,1,1]
