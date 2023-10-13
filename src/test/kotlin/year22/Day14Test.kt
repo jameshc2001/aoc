@@ -31,6 +31,29 @@ class Day14Test {
         assertThat(sandRestPosition3).isEqualTo(Coordinate(501, 8))
     }
 
+    @Test
+    fun `can get answer for part 1 using sample input`() {
+        assertThat(Day14.totalSandWithAbyss(sampleInput)).isEqualTo(24)
+    }
+
+    @Test
+    fun `can get answer for part 1 using question input`() {
+        val input = Day14::class.java.getResourceAsStream("/year22/day14.txt")!!.bufferedReader().readText()
+        assertThat(Day14.totalSandWithAbyss(input)).isEqualTo(1513)
+    }
+
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day14.totalSandWithFloor(sampleInput)).isEqualTo(93)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day14::class.java.getResourceAsStream("/year22/day14.txt")!!.bufferedReader().readText()
+        assertThat(Day14.totalSandWithFloor(input)).isEqualTo(22646)
+    }
+
+
     private val sampleInput = """
         498,4 -> 498,6 -> 496,6
         503,4 -> 502,4 -> 502,9 -> 494,9

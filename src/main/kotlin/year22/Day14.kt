@@ -46,10 +46,11 @@ class Day14 {
             .flatMap { parseLine(it) }
             .toSet()
 
-        fun simulateOneSand(rocksAndSand: Set<Coordinate>, abyssStart: Int): Coordinate? {
+        fun simulateOneSand(rocksAndSand: Set<Coordinate>, abyssStart: Int, abyssIsFloor: Boolean = false): Coordinate? {
             var currentPosition = Coordinate(500, 0)
             while (true) {
                 currentPosition = when {
+                    abyssIsFloor && currentPosition.y + 1 == abyssStart -> return currentPosition
                     currentPosition.y == abyssStart -> return null
                     currentPosition.down() !in rocksAndSand -> currentPosition.down()
                     currentPosition.downLeft() !in rocksAndSand -> currentPosition.downLeft()
@@ -57,6 +58,35 @@ class Day14 {
                     else -> return currentPosition
                 }
             }
+        }
+
+        fun totalSandWithAbyss(input: String): Int {
+            val rocksAndSand = parseInput(input).toMutableSet()
+            val totalRocks = rocksAndSand.size
+            val abyssStart = rocksAndSand.maxOf { it.y }
+
+            var newSand: Coordinate? = simulateOneSand(rocksAndSand, abyssStart)
+            while (newSand != null) {
+                rocksAndSand.add(newSand)
+                newSand = simulateOneSand(rocksAndSand, abyssStart)
+            }
+
+            return rocksAndSand.size - totalRocks
+        }
+
+        fun totalSandWithFloor(input: String): Int {
+            val rocksAndSand = parseInput(input).toMutableSet()
+            val floorY = rocksAndSand.maxOf { it.y } + 2
+            val totalRocks = rocksAndSand.size
+
+            var newSand: Coordinate? = simulateOneSand(rocksAndSand, floorY, true)
+            while (newSand != Coordinate(500, 0)) {
+                rocksAndSand.add(newSand!!)
+                newSand = simulateOneSand(rocksAndSand, floorY, true)
+            }
+            rocksAndSand.add(newSand)
+
+            return rocksAndSand.size - totalRocks
         }
     }
 }
