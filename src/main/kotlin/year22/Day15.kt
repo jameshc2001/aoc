@@ -28,13 +28,17 @@ class Day15 {
             val sensors = parseInput(input)
             val beacons = sensors.map { it.nearestBeacon }.toSet()
 
-            val minX = sensors.minOf { it.location.x - it.distanceToNearestBeacon }
-            val maxX = sensors.maxOf { it.location.x + it.distanceToNearestBeacon }
+            val sensorsInRange = sensors.filter {
+                row in (it.location.y - it.distanceToNearestBeacon..it.location.y + it.distanceToNearestBeacon)
+            }
+
+            val minX = sensorsInRange.minOf { it.location.x - it.distanceToNearestBeacon }
+            val maxX = sensorsInRange.maxOf { it.location.x + it.distanceToNearestBeacon }
 
             return (minX..maxX)
                 .map { x -> Coordinate(x, row) }
                 .filter { location ->
-                    sensors.any { sensor -> distance(location, sensor.location) <= sensor.distanceToNearestBeacon }
+                    sensorsInRange.any { sensor -> distance(location, sensor.location) <= sensor.distanceToNearestBeacon }
                             && location !in beacons
                 }
                 .size
