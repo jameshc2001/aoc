@@ -43,5 +43,35 @@ class Day15 {
                 }
                 .size
         }
+
+        fun Sensor.perimeter() : Sequence<Coordinate> {
+            val topStart = Coordinate(location.x, location.y + distanceToNearestBeacon + 1)
+            val bottomStart = Coordinate(location.x, location.y - distanceToNearestBeacon - 1)
+            val end = Coordinate(location.x + distanceToNearestBeacon + 1, location.y)
+            val diagonalDistance = distance(topStart, end) / 2
+
+            return (0..diagonalDistance).asSequence().flatMap { distance ->
+                listOf(
+                    Coordinate(topStart.x + distance, topStart.y - distance),
+                    Coordinate(topStart.x - distance, topStart.y - distance),
+                    Coordinate(bottomStart.x + distance, bottomStart.y + distance),
+                    Coordinate(bottomStart.x - distance, bottomStart.y + distance),
+                )
+            }
+        }
+
+        fun locationOfUndetectedBeacon(sensors: Set<Sensor>, range: Int) : Coordinate = sensors
+            .asSequence()
+            .flatMap { it.perimeter() }
+            .filter { it.x in 0..range && it.y in 0..range }
+            .filterNot { sensors.any { sensor -> distance(it, sensor.location) <= sensor.distanceToNearestBeacon } }
+            .toSet()
+            .single()
+
+        fun tuningFrequency(input: String, range: Int) : Long {
+            val sensors = parseInput(input)
+            val location = locationOfUndetectedBeacon(sensors, range)
+            return (location.x * 4000000L) + location.y
+        }
     }
 }
