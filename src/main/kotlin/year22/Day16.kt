@@ -66,38 +66,45 @@ class Day16 {
             return DijkstraResults(distances, previousWithoutNulls)
         }
 
+        private var maxPressureReleased = 0
+
         fun findMaxPressureRelease(input: String): Int {
             val map = parseInput(input)
-            val valvesToDistances = map.keys.associateWith { dijkstra(map, it) }
+            val valvesWithFlow = map.keys.filter { it.flowRate > 0 }.toSet()
+            val startValve = map.keys.find { it.name == "AA" }!!
+            val valvesToDistances = valvesWithFlow.plus(startValve).associateWith { dijkstra(map, it).distances }
 
-            var currentValve = map.keys.find { it.name == "AA" }!!
-            var remainingMinutes = 30
-            var totalPressureReleased = 0
-            val openedValves = mutableListOf<Valve>()
+            maxPressureReleased = 0
+            search(startValve, 30, 0, valvesWithFlow, valvesToDistances)
+            return maxPressureReleased
+        }
 
-            data class Decision(val destination: Valve, val remainingMinutes: Int, val pressureReleased: Int)
+        private fun search(
+            currentValve: Valve,
+            remainingMinutes: Int,
+            currentPressureReleased: Int,
+            unopenedValvesWithFlow: Set<Valve>,
+            allDistances: Map<Valve, Map<Valve, Int>>
+        ) {
+            if (currentPressureReleased > maxPressureReleased) maxPressureReleased = currentPressureReleased
+            if (remainingMinutes == 0 || unopenedValvesWithFlow.isEmpty()) return
 
-            while (remainingMinutes > 0) {
-                val distances = valvesToDistances[currentValve]!!
-                val bestDecision = distances.distances
-                    .map { (valve, timeToReachValve) ->
-                        val remainingMinutesIfOpened = remainingMinutes - timeToReachValve - 1
-                        val pressureReleased = remainingMinutesIfOpened * if (valve in openedValves) 0 else valve.flowRate
-                        Decision(valve, remainingMinutesIfOpened, pressureReleased)
-                    }
-                    .filter { it.remainingMinutes >= 0 }
-                    .maxByOrNull { it.pressureReleased }
-                    ?: break
+            val distances = allDistances[currentValve]!!
+            unopenedValvesWithFlow.forEach { valve ->
+                val travelAndOpenTime = distances[valve]!! + 1
+                val remainingMinutesIfOpened = remainingMinutes - travelAndOpenTime
+                val pressureReleasedFromOpening = remainingMinutesIfOpened * valve.flowRate
 
-                totalPressureReleased += bestDecision.pressureReleased
-                remainingMinutes = bestDecision.remainingMinutes
-                currentValve = bestDecision.destination
-                openedValves.add(bestDecision.destination)
+                if (remainingMinutesIfOpened >= 0) {
+                    search(
+                        valve,
+                        remainingMinutesIfOpened,
+                        currentPressureReleased + pressureReleasedFromOpening,
+                        unopenedValvesWithFlow.minus(valve),
+                        allDistances
+                    )
+                }
             }
-
-            println(openedValves)
-
-            return totalPressureReleased
         }
     }
 
