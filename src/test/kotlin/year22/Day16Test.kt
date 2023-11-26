@@ -36,7 +36,7 @@ class Day16Test {
     @Test
     fun `can get answer for part 2 using question input`() {
         val input = Day16::class.java.getResourceAsStream("/year22/day16.txt")!!.bufferedReader().readText()
-        assertThat(Day16.findMaxPressureReleaseWithElephant(input)).isEqualTo(1707)
+        assertThat(Day16.findMaxPressureReleaseWithElephant(input)).isEqualTo(2824)
     }
 
     private val sampleInput = """
