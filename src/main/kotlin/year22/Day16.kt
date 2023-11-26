@@ -1,6 +1,7 @@
 package year22
 
 import java.util.*
+import kotlin.math.max
 
 class Day16 {
 
@@ -101,6 +102,81 @@ class Day16 {
                         remainingMinutesIfOpened,
                         currentPressureReleased + pressureReleasedFromOpening,
                         unopenedValvesWithFlow.minus(valve),
+                        allDistances
+                    )
+                }
+            }
+        }
+
+        fun findMaxPressureReleaseWithElephant(input: String): Int {
+            val map = parseInput(input)
+            val valvesWithFlow = map.keys.filter { it.flowRate > 0 }.toSet()
+            val startValve = map.keys.find { it.name == "AA" }!!
+            val valvesToDistances = valvesWithFlow.plus(startValve).associateWith { dijkstra(map, it).distances }
+
+            val you = Searcher(startValve, 26)
+            val elephant = Searcher(startValve, 26)
+            maxPressureReleased = 0
+            search(you, elephant, 0, valvesWithFlow, valvesToDistances)
+            return maxPressureReleased
+        }
+
+        data class Searcher(val currentValve: Valve, val remainingMinutes: Int)
+
+        data class Option(val searcher: Searcher, val pressureReleasedIfTaken: Int)
+
+        private fun Searcher.allOptions(unopenedValvesWithFlow: Set<Valve>, allDistances: Map<Valve, Map<Valve, Int>>): List<Option> {
+            val distances = allDistances[currentValve]!!
+            return unopenedValvesWithFlow
+                .map { valve ->
+                    val travelAndOpenTime = distances[valve]!! + 1
+                    val remainingMinutesIfOpened = remainingMinutes - travelAndOpenTime
+                    val pressureReleasedFromOpening = remainingMinutesIfOpened * valve.flowRate
+
+                    Option(
+                        Searcher(valve, remainingMinutesIfOpened),
+                        pressureReleasedFromOpening
+                    )
+                }
+                .filter { it.searcher.remainingMinutes >= 0 }
+//                .plus(Option(this, 0)) //option of doing nothing
+        }
+
+        private fun search(
+            searcherA: Searcher,
+            searcherB: Searcher,
+            currentPressureReleased: Int,
+            unopenedValvesWithFlow: Set<Valve>,
+            allDistances: Map<Valve, Map<Valve, Int>>
+        ) {
+            //fail fast
+            //if all valves opened now, would we beat best score?
+            val magicRelease = unopenedValvesWithFlow.sumOf { it.flowRate } * max(searcherA.remainingMinutes, searcherB.remainingMinutes)
+            if (currentPressureReleased + magicRelease <= maxPressureReleased) return
+
+            if (currentPressureReleased > maxPressureReleased) maxPressureReleased = currentPressureReleased
+            if (searcherA.remainingMinutes + searcherB.remainingMinutes == 0 || unopenedValvesWithFlow.isEmpty()) return
+
+            searcherA.allOptions(unopenedValvesWithFlow, allDistances).forEach { optionA ->
+                val remainingUnopenedValves = unopenedValvesWithFlow.minus(optionA.searcher.currentValve)
+                if (remainingUnopenedValves.isNotEmpty()) {
+                    searcherB.allOptions(remainingUnopenedValves, allDistances).forEach { optionB ->
+                        if (optionA.pressureReleasedIfTaken + optionB.pressureReleasedIfTaken > 0) {
+                            search(
+                                optionA.searcher,
+                                optionB.searcher,
+                                currentPressureReleased + optionA.pressureReleasedIfTaken + optionB.pressureReleasedIfTaken,
+                                remainingUnopenedValves.minus(optionB.searcher.currentValve),
+                                allDistances
+                            )
+                        }
+                    }
+                } else {
+                    search(
+                        optionA.searcher,
+                        searcherB,
+                        currentPressureReleased + optionA.pressureReleasedIfTaken,
+                        remainingUnopenedValves,
                         allDistances
                     )
                 }

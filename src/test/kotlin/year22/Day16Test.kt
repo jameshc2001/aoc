@@ -28,6 +28,17 @@ class Day16Test {
         assertThat(Day16.findMaxPressureRelease(input)).isEqualTo(2181)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day16.findMaxPressureReleaseWithElephant(sampleInput)).isEqualTo(1707)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day16::class.java.getResourceAsStream("/year22/day16.txt")!!.bufferedReader().readText()
+        assertThat(Day16.findMaxPressureReleaseWithElephant(input)).isEqualTo(1707)
+    }
+
     private val sampleInput = """
         Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
         Valve BB has flow rate=13; tunnels lead to valves CC, AA
