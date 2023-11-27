@@ -1,6 +1,7 @@
 package year22
 
 import java.util.*
+import kotlin.math.max
 
 class Day16 {
 
@@ -66,18 +67,12 @@ class Day16 {
             return DijkstraResults(distances, previousWithoutNulls)
         }
 
-        private var maxPressureReleased = 0
-
         fun findMaxPressureRelease(input: String): Int {
             val map = parseInput(input)
             val valvesWithFlow = map.keys.filter { it.flowRate > 0 }.toSet()
             val startValve = map.keys.find { it.name == "AA" }!!
             val valvesToDistances = valvesWithFlow.plus(startValve).associateWith { dijkstra(map, it).distances }
-
-            val you = Searcher(startValve, 30)
-            maxPressureReleased = 0
-            search(you, 0, valvesWithFlow, valvesToDistances)
-            return maxPressureReleased
+            return search(Searcher(startValve, 30), 0, valvesWithFlow, valvesToDistances)
         }
 
         data class Searcher(val currentValve: Valve, val remainingMinutes: Int)
@@ -108,21 +103,16 @@ class Day16 {
             currentPressureReleased: Int,
             unopenedValvesWithFlow: Set<Valve>,
             allDistances: Map<Valve, Map<Valve, Int>>
-        ) {
-            if (currentPressureReleased > maxPressureReleased) maxPressureReleased = currentPressureReleased
-            if (searcher.remainingMinutes == 0 || unopenedValvesWithFlow.isEmpty()) return
-
-            searcher
-                .allOptions(unopenedValvesWithFlow, allDistances)
-                .forEach { option ->
-                    search(
-                        option.searcher,
-                        currentPressureReleased + option.pressureReleasedIfTaken,
-                        unopenedValvesWithFlow.minus(option.searcher.currentValve),
-                        allDistances
-                    )
-                }
-        }
+        ) : Int = searcher
+            .allOptions(unopenedValvesWithFlow, allDistances)
+            .maxOfOrNull { option ->
+                search(
+                    option.searcher,
+                    currentPressureReleased + option.pressureReleasedIfTaken,
+                    unopenedValvesWithFlow.minus(option.searcher.currentValve),
+                    allDistances
+                )
+            } ?: currentPressureReleased
 
         fun findMaxPressureReleaseWithElephant(input: String): Int {
             val map = parseInput(input)
@@ -130,30 +120,31 @@ class Day16 {
             val startValve = map.keys.find { it.name == "AA" }!!
             val valvesToDistances = valvesWithFlow.plus(startValve).associateWith { dijkstra(map, it).distances }
 
-            val you = Searcher(startValve, 26)
+            val you = CachedSearcher(Searcher(startValve, 26))
             val elephant = Searcher(startValve, 26)
-            maxPressureReleased = 0
-            search(you, elephant, 0, valvesWithFlow, valvesToDistances)
-            return maxPressureReleased
+            return search(you, elephant, 0, valvesWithFlow, valvesToDistances)
+        }
+
+        class CachedSearcher(private val searcher: Searcher) {
+            private val cache : MutableMap<Set<Valve>, Int> = mutableMapOf()
+
+            fun search(currentPressureReleased: Int, unopenedValvesWithFlow: Set<Valve>, allDistances: Map<Valve, Map<Valve, Int>>) : Int {
+                cache[unopenedValvesWithFlow]?.let { return currentPressureReleased + it }
+                val bestPressureReleased = search(searcher, 0, unopenedValvesWithFlow, allDistances)
+                cache[unopenedValvesWithFlow] = bestPressureReleased
+                return bestPressureReleased + currentPressureReleased
+            }
         }
 
         private fun search(
-            you: Searcher,
+            you: CachedSearcher,
             elephant: Searcher,
             currentPressureReleased: Int,
             unopenedValvesWithFlow: Set<Valve>,
             allDistances: Map<Valve, Map<Valve, Int>>
-        ) {
-            if (currentPressureReleased > maxPressureReleased) maxPressureReleased = currentPressureReleased
-            if (you.remainingMinutes + elephant.remainingMinutes == 0 || unopenedValvesWithFlow.isEmpty()) return
-
-            //elephant gives up, you do rest of search
-            //big optimisation here would be to cache results for unopenedValvesWithFlow
-            //precompute cache?
-            search(you, currentPressureReleased, unopenedValvesWithFlow, allDistances)
-
-            //elephant is still going!
-            elephant.allOptions(unopenedValvesWithFlow, allDistances).forEach { option ->
+        ) : Int = max(
+            you.search(currentPressureReleased, unopenedValvesWithFlow, allDistances),
+            elephant.allOptions(unopenedValvesWithFlow, allDistances).maxOfOrNull { option ->
                 search(
                     you,
                     option.searcher,
@@ -161,7 +152,7 @@ class Day16 {
                     unopenedValvesWithFlow.minus(option.searcher.currentValve),
                     allDistances
                 )
-            }
-        }
+            } ?: currentPressureReleased
+        )
     }
 }
