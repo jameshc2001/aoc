@@ -10,14 +10,26 @@ class Day17 {
         }
 
         private var iterator = 0
+
         fun next(): T {
             val element = list[iterator]
             iterator = (iterator + 1) % list.size
             return element
         }
+
+        fun skip(n: Int) {
+            require(n > 0)
+            iterator = (iterator + n) % list.size
+        }
+
+        fun peek() = list[iterator]
     }
 
-    data class Pos(val x: Long, val y: Long)
+    data class Pos(val x: Long, val y: Long) {
+        fun surroundingCoordinates() =
+            listOf(Pos(-1, 0), Pos(0, 1), Pos(1, 0), Pos(0, -1))
+                .map { Pos(x + it.x, y + it.y) }
+    }
     data class RockShape(val coordinates: Set<Pos>) {
         fun withOffset(offset: Pos) = coordinates.map { Pos(it.x + offset.x, it.y + offset.y) }
     }
@@ -26,7 +38,7 @@ class Day17 {
         LEFT, RIGHT;
 
         companion object {
-            fun fromChar(char: Char): Direction = when(char) {
+            fun fromChar(char: Char): Direction = when (char) {
                 '<' -> LEFT
                 '>' -> RIGHT
                 else -> throw RuntimeException("Unexpected direction")
@@ -49,23 +61,21 @@ class Day17 {
                 .map { Direction.fromChar(it) }
         )
 
-        //for part 2 change this function to work by only keeping track of top level coordinates. Also switch to using Long in Pos
         fun heightAfterRocksFall(input: String, rocks: Long): Long {
             val jetPattern = parseInput(input)
             val rockShapesCircularList = CircularList(rockShapes)
 
             var highestY = 0L
-            val coordinates = mutableSetOf<Pos>()
+            var coordinates = mutableSetOf<Pos>()
 
-            repeat((0 ..< rocks).count()) {
+            (0L..<rocks).forEach { _ ->
+                coordinates = optimise(coordinates).toMutableSet()
                 val rockShape = rockShapesCircularList.next()
                 var position = Pos(2, highestY + 3)
                 var fall = false
                 var landed = false
 
                 do {
-//                    draw(coordinates.plus(rockShape.withOffset(position)))
-
                     val nextPos = if (fall) position.copy(y = position.y - 1) else {
                         when (jetPattern.next()) {
                             Direction.LEFT -> position.copy(x = position.x - 1)
@@ -88,10 +98,33 @@ class Day17 {
             return highestY
         }
 
+        private fun optimise(oldCoordinates: Set<Pos>): Set<Pos> {
+            if (oldCoordinates.groupBy { it.x }.keys.size < 7) return oldCoordinates //guarantees path from left to right
+
+            val start = oldCoordinates.maxBy { it.y }.let { it.copy(y = it.y + 1) }
+            val sandFill = explore(start, oldCoordinates, start.y + 2)
+
+            return oldCoordinates.filter { pos ->
+                pos.surroundingCoordinates().any { it in sandFill }
+            }.toSet()
+        }
+
+        private fun explore(pos: Pos, map: Set<Pos>, maxY: Long): Set<Pos> {
+            val discovered = mutableSetOf<Pos>()
+            explore(pos, map, maxY, discovered)
+            return discovered
+        }
+
+        private fun explore(pos: Pos, map: Set<Pos>, maxY: Long, discovered: MutableSet<Pos>) {
+            if (pos.y > maxY || pos.x !in (0L..6L) || pos in map || pos in discovered) return
+            discovered.add(pos)
+            pos.surroundingCoordinates().forEach { explore(it, map, maxY, discovered) }
+        }
+
         private fun getCollision(
             rockShape: RockShape,
             nextPos: Pos,
-            coordinates: MutableSet<Pos>
+            coordinates: Set<Pos>
         ): Boolean {
             val rockCoordinates = rockShape.withOffset(nextPos)
             return rockCoordinates.any { it in coordinates }
@@ -99,22 +132,24 @@ class Day17 {
                     || rockCoordinates.any { it.x !in (0..6) }
         }
 
-        private fun draw(coordinates: Set<Pos>) {
-            (0 .. coordinates.maxOf { it.y }).reversed().forEach { y ->
-                (-1L .. 7).forEach { x ->
+        private fun draw(coordinates: Set<Pos>): String {
+            var printout = ""
+            (0..coordinates.maxOf { it.y }).reversed().forEach { y ->
+                (-1L..7).forEach { x ->
                     val pos = Pos(x, y)
-                    if (pos in coordinates) print('#')
-                    else if (pos.x == -1L || pos.x == 7L) print('|')
-                    else print('.')
+                    printout = if (pos in coordinates) printout.plus('#')
+                    else if (pos.x == -1L || pos.x == 7L) printout.plus('|')
+                    else printout.plus('.')
                 }
-                println()
+                printout += "\n"
             }
-            print('+')
-            repeat((0..6).count()) { print('-') }
-            print('+')
-            println()
-            println()
-            println()
+            printout = printout.plus('+')
+            repeat((0..6).count()) { printout = printout.plus('-') }
+            printout = printout.plus('+')
+            printout = printout.plus("\n")
+            printout = printout.plus("\n")
+            printout = printout.plus("\n")
+            return printout
         }
     }
 }

@@ -29,6 +29,11 @@ class Day17Test {
         assertThat(Day17.heightAfterRocksFall(input, 2022)).isEqualTo(3163)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day17.heightAfterRocksFall(sampleInput, 1000000000000)).isEqualTo(3068)
+    }
+
     private val sampleInput = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
 
 }
