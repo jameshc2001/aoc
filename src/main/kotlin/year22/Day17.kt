@@ -17,7 +17,7 @@ class Day17 {
         }
     }
 
-    data class Pos(val x: Int, val y: Int)
+    data class Pos(val x: Long, val y: Long)
     data class RockShape(val coordinates: Set<Pos>) {
         fun withOffset(offset: Pos) = coordinates.map { Pos(it.x + offset.x, it.y + offset.y) }
     }
@@ -35,15 +35,13 @@ class Day17 {
     }
 
     companion object {
-        private val rockShapes = CircularList(
-            listOf(
-                RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(2, 0), Pos(3, 0))), //-
-                RockShape(setOf(Pos(1, 0), Pos(0, 1), Pos(1, 1), Pos(2, 1), Pos(1, 2))), //+
-                RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(2, 0), Pos(2, 1), Pos(2, 2))), //reverse L
-                RockShape(setOf(Pos(0, 0), Pos(0, 1), Pos(0, 2), Pos(0, 3))), //|
-                RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(0, 1), Pos(1, 1))) //square
-            ) //define with bottom left as 0, 0
-        )
+        private val rockShapes = listOf(
+            RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(2, 0), Pos(3, 0))), //-
+            RockShape(setOf(Pos(1, 0), Pos(0, 1), Pos(1, 1), Pos(2, 1), Pos(1, 2))), //+
+            RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(2, 0), Pos(2, 1), Pos(2, 2))), //reverse L
+            RockShape(setOf(Pos(0, 0), Pos(0, 1), Pos(0, 2), Pos(0, 3))), //|
+            RockShape(setOf(Pos(0, 0), Pos(1, 0), Pos(0, 1), Pos(1, 1))) //square
+        ) //define with bottom left as 0, 0
 
         fun parseInput(input: String) = CircularList(
             input.replace("\n", "")
@@ -52,14 +50,15 @@ class Day17 {
         )
 
         //for part 2 change this function to work by only keeping track of top level coordinates. Also switch to using Long in Pos
-        fun heightAfterRocksFall(input: String, rocks: Int): Int {
+        fun heightAfterRocksFall(input: String, rocks: Long): Long {
             val jetPattern = parseInput(input)
+            val rockShapesCircularList = CircularList(rockShapes)
 
-            var highestY = 0
+            var highestY = 0L
             val coordinates = mutableSetOf<Pos>()
 
             repeat((0 ..< rocks).count()) {
-                val rockShape = rockShapes.next()
+                val rockShape = rockShapesCircularList.next()
                 var position = Pos(2, highestY + 3)
                 var fall = false
                 var landed = false
@@ -102,10 +101,10 @@ class Day17 {
 
         private fun draw(coordinates: Set<Pos>) {
             (0 .. coordinates.maxOf { it.y }).reversed().forEach { y ->
-                (-1 .. 7).forEach { x ->
+                (-1L .. 7).forEach { x ->
                     val pos = Pos(x, y)
                     if (pos in coordinates) print('#')
-                    else if (pos.x == -1 || pos.x == 7) print('|')
+                    else if (pos.x == -1L || pos.x == 7L) print('|')
                     else print('.')
                 }
                 println()
