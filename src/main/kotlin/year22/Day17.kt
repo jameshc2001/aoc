@@ -5,31 +5,18 @@ import kotlin.math.max
 class Day17 {
 
     class CircularList<out T>(private val list: List<T>) {
-        init {
-            require(list.isNotEmpty())
-        }
+        init { require(list.isNotEmpty()) }
 
         private var iterator = 0
-
         fun next(): T {
             val element = list[iterator]
             iterator = (iterator + 1) % list.size
             return element
         }
-
-        fun skip(n: Int) {
-            require(n > 0)
-            iterator = (iterator + n) % list.size
-        }
-
-        fun peek() = list[iterator]
     }
 
-    data class Pos(val x: Long, val y: Long) {
-        fun surroundingCoordinates() =
-            listOf(Pos(-1, 0), Pos(0, 1), Pos(1, 0), Pos(0, -1))
-                .map { Pos(x + it.x, y + it.y) }
-    }
+    data class Pos(val x: Long, val y: Long)
+
     data class RockShape(val coordinates: Set<Pos>) {
         fun withOffset(offset: Pos) = coordinates.map { Pos(it.x + offset.x, it.y + offset.y) }
     }
@@ -66,59 +53,43 @@ class Day17 {
             val rockShapesCircularList = CircularList(rockShapes)
 
             var highestY = 0L
-            var coordinates = mutableSetOf<Pos>()
+            val coordinates = mutableSetOf<Pos>()
 
             (0L..<rocks).forEach { _ ->
-                coordinates = optimise(coordinates).toMutableSet()
-                val rockShape = rockShapesCircularList.next()
-                var position = Pos(2, highestY + 3)
-                var fall = false
-                var landed = false
-
-                do {
-                    val nextPos = if (fall) position.copy(y = position.y - 1) else {
-                        when (jetPattern.next()) {
-                            Direction.LEFT -> position.copy(x = position.x - 1)
-                            Direction.RIGHT -> position.copy(x = position.x + 1)
-                        }
-                    }
-
-                    val collision = getCollision(rockShape, nextPos, coordinates)
-                    if (collision && fall) landed = true
-                    else if (!collision) position = nextPos
-
-                    fall = !fall
-                } while (!landed)
-
-                val rockShapeWithOffset = rockShape.withOffset(position)
-                highestY = max(highestY, rockShapeWithOffset.maxOf { it.y } + 1) //+1 accounts for height of single coordinate
-                coordinates.addAll(rockShapeWithOffset)
+                highestY = heightAfterDroppingARock(highestY, jetPattern, rockShapesCircularList.next(), coordinates)
             }
 
             return highestY
         }
 
-        private fun optimise(oldCoordinates: Set<Pos>): Set<Pos> {
-            if (oldCoordinates.groupBy { it.x }.keys.size < 7) return oldCoordinates //guarantees path from left to right
+        private fun heightAfterDroppingARock(
+            highestY: Long,
+            jetPattern: CircularList<Direction>,
+            rockShape: RockShape,
+            coordinates: MutableSet<Pos>
+        ) : Long {
+            var position = Pos(2, highestY + 3)
+            var fall = false
+            var landed = false
 
-            val start = oldCoordinates.maxBy { it.y }.let { it.copy(y = it.y + 1) }
-            val sandFill = explore(start, oldCoordinates, start.y + 2)
+            do {
+                val nextPos = if (fall) position.copy(y = position.y - 1) else {
+                    when (jetPattern.next()) {
+                        Direction.LEFT -> position.copy(x = position.x - 1)
+                        Direction.RIGHT -> position.copy(x = position.x + 1)
+                    }
+                }
 
-            return oldCoordinates.filter { pos ->
-                pos.surroundingCoordinates().any { it in sandFill }
-            }.toSet()
-        }
+                val collision = getCollision(rockShape, nextPos, coordinates)
+                if (collision && fall) landed = true
+                else if (!collision) position = nextPos
 
-        private fun explore(pos: Pos, map: Set<Pos>, maxY: Long): Set<Pos> {
-            val discovered = mutableSetOf<Pos>()
-            explore(pos, map, maxY, discovered)
-            return discovered
-        }
+                fall = !fall
+            } while (!landed)
 
-        private fun explore(pos: Pos, map: Set<Pos>, maxY: Long, discovered: MutableSet<Pos>) {
-            if (pos.y > maxY || pos.x !in (0L..6L) || pos in map || pos in discovered) return
-            discovered.add(pos)
-            pos.surroundingCoordinates().forEach { explore(it, map, maxY, discovered) }
+            val rockShapeWithOffset = rockShape.withOffset(position)
+            coordinates.addAll(rockShapeWithOffset)
+            return max(highestY, rockShapeWithOffset.maxOf { it.y } + 1) //+1 accounts for height of single coordinate
         }
 
         private fun getCollision(
@@ -132,24 +103,66 @@ class Day17 {
                     || rockCoordinates.any { it.x !in (0..6) }
         }
 
-        private fun draw(coordinates: Set<Pos>): String {
-            var printout = ""
-            (0..coordinates.maxOf { it.y }).reversed().forEach { y ->
-                (-1L..7).forEach { x ->
-                    val pos = Pos(x, y)
-                    printout = if (pos in coordinates) printout.plus('#')
-                    else if (pos.x == -1L || pos.x == 7L) printout.plus('|')
-                    else printout.plus('.')
+        data class RockFallCycleData(
+            val initialHeightDeltas: List<Long>,
+            val cycleHeightDeltas: List<Long>
+        )
+
+        fun findRockFallCycle(jetPattern: CircularList<Direction>): RockFallCycleData {
+            val rockShapesCircularList = CircularList(rockShapes)
+            val heightDeltas = mutableListOf<Long>()
+            val coordinates = mutableSetOf<Pos>()
+
+            var prevHeight = 0L
+            var cycleData : CycleData?
+
+            do {
+                val newHeight = heightAfterDroppingARock(prevHeight, jetPattern, rockShapesCircularList.next(), coordinates)
+                heightDeltas.add(newHeight - prevHeight)
+                prevHeight = newHeight
+                cycleData = findCycle(heightDeltas)
+            } while (cycleData == null)
+
+            return RockFallCycleData(
+                heightDeltas.take(cycleData.start),
+                heightDeltas.subList(cycleData.start, cycleData.start + cycleData.size)
+            )
+        }
+
+        data class CycleData(
+            val start: Int, //first element in cycle
+            val size: Int
+        )
+
+        private fun findCycle(data: List<Long>) : CycleData? {
+            (0 ..< data.size - 1).forEach { start ->
+                val subSection = data.drop(start)
+                if (subSection.size % 2 == 0) {
+                    val size = subSection.size / 2
+                    val left = subSection.subList(0, size)
+                    val right = subSection.subList(size, subSection.size)
+                    if (size > 5 && left == right) return CycleData(start, size)
                 }
-                printout += "\n"
             }
-            printout = printout.plus('+')
-            repeat((0..6).count()) { printout = printout.plus('-') }
-            printout = printout.plus('+')
-            printout = printout.plus("\n")
-            printout = printout.plus("\n")
-            printout = printout.plus("\n")
-            return printout
+            return null
+        }
+
+        fun heightAfterRocksFallUsingCycle(input: String, rocks: Long): Long {
+            val jetPattern = parseInput(input)
+            val cycleData = findRockFallCycle(jetPattern)
+
+            val initialHeight = cycleData.initialHeightDeltas.sum()
+            val initialRocks = cycleData.initialHeightDeltas.size
+            val cycleHeight = cycleData.cycleHeightDeltas.sum()
+            val cycleRocks = cycleData.cycleHeightDeltas.size
+
+            val cyclesToAdd = (rocks - initialRocks) / cycleRocks //implicitly round down
+            val extraRocksToAdd = (rocks - initialRocks) % cycleRocks
+
+            val heightFromCycles = cyclesToAdd * cycleHeight
+            val heightFromExtraRocks = cycleData.cycleHeightDeltas.take(extraRocksToAdd.toInt()).sum()
+
+            return initialHeight + heightFromCycles + heightFromExtraRocks
         }
     }
 }

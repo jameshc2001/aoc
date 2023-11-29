@@ -30,8 +30,22 @@ class Day17Test {
     }
 
     @Test
+    fun `can find cycle using sample input`() {
+        val jetPattern = Day17.parseInput(sampleInput)
+        val cycleData = Day17.findRockFallCycle(jetPattern)
+        assertThat(cycleData.initialHeightDeltas).hasSize(15)
+        assertThat(cycleData.cycleHeightDeltas).hasSize(35)
+    }
+
+    @Test
     fun `can get answer for part 2 using sample input`() {
-        assertThat(Day17.heightAfterRocksFall(sampleInput, 1000000000000)).isEqualTo(3068)
+        assertThat(Day17.heightAfterRocksFallUsingCycle(sampleInput, 1000000000000)).isEqualTo(1514285714288)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day17::class.java.getResourceAsStream("/year22/day17.txt")!!.bufferedReader().readText()
+        assertThat(Day17.heightAfterRocksFallUsingCycle(input, 1000000000000)).isEqualTo(1560932944615)
     }
 
     private val sampleInput = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
