@@ -24,6 +24,17 @@ class Day18Test {
         assertThat(Day18.surfaceArea(input)).isEqualTo(3542)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day18.exteriorSurfaceArea(sampleInput)).isEqualTo(58)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day18::class.java.getResourceAsStream("/year22/day18.txt")!!.bufferedReader().readText()
+        assertThat(Day18.exteriorSurfaceArea(input)).isEqualTo(2080)
+    }
+
     private val sampleInput = """
         2,2,2
         1,2,2
