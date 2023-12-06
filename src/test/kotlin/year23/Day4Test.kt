@@ -22,6 +22,17 @@ class Day4Test {
         assertThat(Day4.totalPoints(input)).isEqualTo(22488)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day4.totalScratchcards(sampleInput)).isEqualTo(30)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day4::class.java.getResourceAsStream("/year23/day4.txt")!!.bufferedReader().readText()
+        assertThat(Day4.totalScratchcards(input)).isEqualTo(7013204)
+    }
+
     private val sampleInput = """
         Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
         Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
