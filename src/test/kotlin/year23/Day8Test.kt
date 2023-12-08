@@ -26,12 +26,36 @@ class Day8Test {
         assertThat(Day8.stepsToReach(input, "ZZZ")).isEqualTo(11567)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day8.simultaneousStepsToReach(sampleInputPart2)).isEqualTo(6)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day8::class.java.getResourceAsStream("/year23/day8.txt")!!.bufferedReader().readText()
+        assertThat(Day8.simultaneousStepsToReach(input)).isEqualTo(9858474970153)
+    }
+
     private val sampleInput = """
         LLR
 
         AAA = (BBB, BBB)
         BBB = (AAA, ZZZ)
         ZZZ = (ZZZ, ZZZ)
+    """.trimIndent()
+
+    private val sampleInputPart2 = """
+        LR
+
+        11A = (11B, XXX)
+        11B = (XXX, 11Z)
+        11Z = (11B, XXX)
+        22A = (22B, XXX)
+        22B = (22C, 22C)
+        22C = (22Z, 22Z)
+        22Z = (22B, 22B)
+        XXX = (XXX, XXX)
     """.trimIndent()
 
 }
