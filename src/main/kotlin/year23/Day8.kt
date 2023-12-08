@@ -76,7 +76,7 @@ class Day8 {
             return cyclesLengths.reduce { acc, l -> findLCM(acc, l) }
         }
 
-        //Interestingly the copy about on line 77 is not necessary.
+        //Interestingly the copy in cyclesLength initialization is not necessary.
         //This is because the cycles are in sync with the length of the directions.
         //i.e. (number of calls to nextDirection % directions.length) is always 0
     }
