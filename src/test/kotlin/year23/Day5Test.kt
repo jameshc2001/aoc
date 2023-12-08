@@ -9,9 +9,9 @@ class Day5Test {
     fun `can parse sample input`() {
         val almanac = Day5.parseInput(sampleInput)
         assertThat(almanac.seeds).hasSize(4)
-        assertThat(almanac.humidityToLocation).containsEntry(56, 60)
-        assertThat(almanac.humidityToLocation).containsEntry(56 + 36, 60 + 36)
-        assertThat(almanac.humidityToLocation).doesNotContainEntry(56 + 37, 60 + 37)
+        assertThat(almanac.humidityToLocation.get(56)).isEqualTo(60)
+        assertThat(almanac.humidityToLocation.get(56 + 36)).isEqualTo(60 + 36)
+        assertThat(almanac.humidityToLocation.get(99)).isEqualTo(99)
     }
 
     @Test
@@ -28,7 +28,18 @@ class Day5Test {
     @Test
     fun `can get answer for part 1 using question input`() {
         val input = Day5::class.java.getResourceAsStream("/year23/day5.txt")!!.bufferedReader().readText()
-        assertThat(Day5.lowestSeedLocation(input)).isEqualTo(35)
+        assertThat(Day5.lowestSeedLocation(input)).isEqualTo(551761867)
+    }
+
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day5.lowestSeedLocationUsingRanges(sampleInput)).isEqualTo(46)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day5::class.java.getResourceAsStream("/year23/day5.txt")!!.bufferedReader().readText()
+        assertThat(Day5.lowestSeedLocationUsingRanges(input)).isEqualTo(57451709)
     }
 
     private val sampleInput = """
