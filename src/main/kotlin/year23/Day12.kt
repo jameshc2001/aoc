@@ -35,44 +35,71 @@ class Day12 {
             .map { it.replace("\r", "") }
             .map { line -> Row.fromString(line) }
 
-        fun rowIsValid(row: Row): Boolean {
-            if (Unknown in row.conditions) return false
+        private val cache = mutableMapOf<Row, Long>()
 
-            val groups = mutableListOf<Int>()
-            var currentGroup = 0
-            if (row.conditions.first() == Damaged) currentGroup = 1
+        private fun fasterValidConfigurationsCached(conditions: List<Condition>, groups: List<Int>): Long {
+            val row = Row(conditions, groups)
+            cache[row]?.let { return it }
+            val result = fasterValidConfigurations(conditions, groups)
+            cache[row] = result
+            return result
+        }
 
-            row.conditions.zipWithNext { previous, current ->
-                if (current == Damaged) currentGroup += 1
-                if (previous == Damaged && current == Operational) {
-                    groups.add(currentGroup)
-                    currentGroup = 0
+        private fun fasterValidConfigurations(conditions: List<Condition>, groups: List<Int>): Long {
+            if (conditions.isEmpty()) { //we reached the end
+                return if (groups.isEmpty()) 1 else 0
+            }
+
+            val currentCondition = conditions.first()
+            when (currentCondition) {
+                Operational -> {
+                    return fasterValidConfigurationsCached(conditions.drop(1), groups)
+                }
+                Unknown -> {
+                    return fasterValidConfigurationsCached(listOf(Operational).plus(conditions.drop(1)), groups) +
+                            fasterValidConfigurationsCached(listOf(Damaged).plus(conditions.drop(1)), groups)
+                }
+                Damaged -> {
+                    if (groups.isEmpty()) return 0
+
+                    val groupSize = groups.first()
+                    val possibleGroupSection = conditions.take(groupSize) //returns list with size <= original size
+                    val conditionAfterGroup = conditions.getOrNull(groupSize) //null if at end
+
+                    if (possibleGroupSection.size < groupSize) return 0 //happens at end of conditions
+                    if (possibleGroupSection.size == groupSize) {
+                        val validGroup = Operational !in possibleGroupSection
+                        if (!validGroup) return 0
+
+                        //group must be valid
+                        return when (conditionAfterGroup) {
+                            Damaged -> 0
+                            Operational, null -> {
+                                fasterValidConfigurationsCached(conditions.drop(groupSize), groups.drop(1))
+                            }
+                            Unknown -> {
+                                fasterValidConfigurationsCached( //+1 to replace next condition
+                                    listOf(Operational).plus(conditions.drop(groupSize + 1)),
+                                    groups.drop(1)
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            if (currentGroup != 0) groups.add(currentGroup)
 
-            return groups == row.groups
+            throw RuntimeException("something went very wrong")
         }
 
-        fun validConfigurations(row: Row): Int {
-            if (rowIsValid(row)) return 1
-            if (Unknown !in row.conditions) return 0
+        private fun expandRow(row: Row) = Row(
+            conditions = row.conditions + Unknown + row.conditions + Unknown +
+                    row.conditions + Unknown + row.conditions + Unknown + row.conditions,
+            groups = row.groups + row.groups + row.groups + row.groups + row.groups
+        )
 
-            val indexOfFirstUnknown = row.conditions.indexOfFirst { it == Unknown }
-            val mutableConditions = row.conditions.toMutableList()
-
-            mutableConditions[indexOfFirstUnknown] = Operational
-            val conditionsIfOperational = mutableConditions.toList()
-
-            mutableConditions[indexOfFirstUnknown] = Damaged
-            val conditionsIfDamaged = mutableConditions.toList()
-
-            return validConfigurations(row.copy(conditions = conditionsIfDamaged)) +
-                    validConfigurations(row.copy(conditions = conditionsIfOperational))
-        }
-
-        fun validConfigurationsForRows(input: String) = parseInput(input).sumOf { validConfigurations(it) }
+        fun validConfigurationsForRows(input: String) = parseInput(input).sumOf { fasterValidConfigurationsCached(it.conditions, it.groups) }
+        fun validConfigurationsForExpandedRows(input: String) = parseInput(input)
+            .map { expandRow(it) }
+            .sumOf { fasterValidConfigurationsCached(it.conditions, it.groups) }
     }
-
-
 }

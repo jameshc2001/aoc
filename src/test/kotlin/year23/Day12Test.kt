@@ -20,22 +20,6 @@ class Day12Test {
     }
 
     @Test
-    fun `can check row is valid`() {
-        assertThat(Day12.rowIsValid(Row.fromString("? 1"))).isFalse()
-        assertThat(Day12.rowIsValid(Row.fromString("# 1"))).isTrue()
-        assertThat(Day12.rowIsValid(Row.fromString("#.#.### 1,1,3"))).isTrue()
-        assertThat(Day12.rowIsValid(Row.fromString("#....######..#####. 1,6,5"))).isTrue()
-        assertThat(Day12.rowIsValid(Row.fromString("#....######..#####. 1,60,5"))).isFalse()
-        assertThat(Day12.rowIsValid(Row.fromString("#....###..#####. 1,6,5"))).isFalse()
-    }
-
-    @Test
-    fun `can get number of possible valid configurations for a row`() {
-        assertThat(Day12.validConfigurations(Row.fromString("????.######..#####. 1,6,5"))).isEqualTo(4)
-        assertThat(Day12.validConfigurations(Row.fromString("?###???????? 3,2,1"))).isEqualTo(10)
-    }
-
-    @Test
     fun `can get answer for part 1 using sample input`() {
         assertThat(Day12.validConfigurationsForRows(sampleInput)).isEqualTo(21)
     }
@@ -44,6 +28,17 @@ class Day12Test {
     fun `can get answer for part 1 using question input`() {
         val input = Day12::class.java.getResourceAsStream("/year23/day12.txt")!!.bufferedReader().readText()
         assertThat(Day12.validConfigurationsForRows(input)).isEqualTo(7916)
+    }
+
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day12.validConfigurationsForExpandedRows(sampleInput)).isEqualTo(525152)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day12::class.java.getResourceAsStream("/year23/day12.txt")!!.bufferedReader().readText()
+        assertThat(Day12.validConfigurationsForExpandedRows(input)).isEqualTo(37366887898686)
     }
 
     private val sampleInput = """
