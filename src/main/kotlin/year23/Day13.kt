@@ -18,7 +18,15 @@ class Day13 {
         }
     }
 
-    data class Pattern(val rows: List<List<Tile>>, val columns: List<List<Tile>>)
+    data class Pattern(val grid: Map<Pos, Tile>) {
+        val rows = grid.entries
+            .groupBy { it.key.y }
+            .map { (_, posToTile) -> posToTile.map { it.value } }
+
+        val columns = grid.entries
+            .groupBy { it.key.x }
+            .map { (_, posToTile) -> posToTile.map { it.value } }
+    }
 
     companion object {
         fun parseInput(input: String): List<Pattern> {
@@ -26,7 +34,7 @@ class Day13 {
                 .split("\n\n")
                 .let { if (it.size == 1) it.first().split("\r\n\r\n") else it }
 
-            val grids = patterns.map { patternText ->
+            return patterns.map { patternText ->
                 patternText
                     .lines()
                     .map { it.replace("\n", "") }
@@ -36,29 +44,7 @@ class Day13 {
                             Pos(x, y) to Tile.fromChar(c)
                         }
                     }
-            }
-
-            return grids.map { grid ->
-                val rows = grid
-                    .groupBy { it.first.y }
-                    .toSortedMap()
-                    .map { (_, posToTile) ->
-                        posToTile
-                            .sortedBy { it.first.x }
-                            .map { it.second }
-                    }
-
-                val columns = grid
-                    .groupBy { it.first.x }
-                    .toSortedMap()
-                    .map { (_, posToTile) ->
-                        posToTile
-                            .sortedBy { it.first.y }
-                            .map { it.second }
-                    }
-
-                Pattern(rows, columns)
-            }
+            }.map { Pattern(it.toMap()) }
         }
 
         fun linesOfSymmetry(lines: List<List<Tile>>): List<Int> { //lines can be either rows or columns, it does not matter
