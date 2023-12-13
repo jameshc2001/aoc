@@ -25,10 +25,10 @@ class Day13Test {
     @Test
     fun `can detect line of symmetry in pattern`() {
         val patterns = Day13.parseInput(sampleInput)
-        assertThat(Day13.linesOfSymmetry(patterns.first().columns)).isEqualTo(listOf(5))
-        assertThat(Day13.linesOfSymmetry(patterns.first().rows)).isEqualTo(emptyList<Int>())
-        assertThat(Day13.linesOfSymmetry(patterns.last().columns)).isEqualTo(emptyList<Int>())
-        assertThat(Day13.linesOfSymmetry(patterns.last().rows)).isEqualTo(listOf(4))
+        assertThat(Day13.lineOfSymmetry(patterns.first().columns)).isEqualTo(5)
+        assertThat(Day13.lineOfSymmetry(patterns.first().rows)).isEqualTo(null)
+        assertThat(Day13.lineOfSymmetry(patterns.last().columns)).isEqualTo(null)
+        assertThat(Day13.lineOfSymmetry(patterns.last().rows)).isEqualTo(4)
     }
 
     @Test
@@ -40,6 +40,17 @@ class Day13Test {
     fun `can get answer for part 1 using question input`() {
         val input = Day13::class.java.getResourceAsStream("/year23/day13.txt")!!.bufferedReader().readText()
         assertThat(Day13.summary(input)).isEqualTo(39939)
+    }
+
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day13.summaryWithSmudgeRemoval(sampleInput)).isEqualTo(400)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day13::class.java.getResourceAsStream("/year23/day13.txt")!!.bufferedReader().readText()
+        assertThat(Day13.summaryWithSmudgeRemoval(input)).isEqualTo(32069)
     }
 
     private val sampleInput = """

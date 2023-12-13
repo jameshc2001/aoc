@@ -30,15 +30,11 @@ class Day13 {
 
     companion object {
         fun parseInput(input: String): List<Pattern> {
-            val patterns = input
-                .split("\n\n")
-                .let { if (it.size == 1) it.first().split("\r\n\r\n") else it }
-
+            val patterns = input.replace("\r", "").split("\n\n")
             return patterns.map { patternText ->
                 patternText
                     .lines()
                     .map { it.replace("\n", "") }
-                    .map { it.replace("\r", "") }
                     .flatMapIndexed { y: Int, line: String ->
                         line.mapIndexed { x, c ->
                             Pos(x, y) to Tile.fromChar(c)
@@ -47,8 +43,8 @@ class Day13 {
             }.map { Pattern(it.toMap()) }
         }
 
-        fun linesOfSymmetry(lines: List<List<Tile>>): List<Int> { //lines can be either rows or columns, it does not matter
-            return lines.indices.drop(1).filter { index ->
+        fun lineOfSymmetry(lines: List<List<Tile>>): Int? { //lines can be either rows or columns, it does not matter
+            return lines.indices.drop(1).find { index ->
                 val range = min(index, lines.size - index)
                 val left = lines.subList(index - range, index)
                 val right = lines.subList(index, index + range)
@@ -56,14 +52,30 @@ class Day13 {
             }
         }
 
-        private fun summary(patterns: List<Pattern>) : Int {
-            return patterns.sumOf { pattern ->
-                val columnSymmetry = linesOfSymmetry(pattern.columns)
-                val rowSymmetry = linesOfSymmetry(pattern.rows)
-                columnSymmetry.sum() + rowSymmetry.sumOf { it * 100 }
+        private fun lineOfSymmetryWithSmudgeRemoval(lines: List<List<Tile>>): Int? {
+            return lines.indices.drop(1).find { index ->
+                val range = min(index, lines.size - index)
+                val left = lines.subList(index - range, index)
+                val right = lines.subList(index, index + range)
+
+                val differentLine = left.reversed().zip(right).singleOrNull { (l, r) -> l != r }
+                if (differentLine != null) {
+                    val differentTiles = differentLine.first.zip(differentLine.second).count { (l, r) -> l != r }
+                    differentTiles == 1
+                } else false
             }
         }
 
-        fun summary(input: String) = summary(parseInput(input))
+        fun summary(input: String) = parseInput(input).sumOf { pattern ->
+            val columnSymmetry = lineOfSymmetry(pattern.columns) ?: 0
+            val rowSymmetry = lineOfSymmetry(pattern.rows) ?: 0
+            columnSymmetry + (rowSymmetry * 100)
+        }
+
+        fun summaryWithSmudgeRemoval(input: String) = parseInput(input).sumOf { pattern ->
+            val columnSymmetry = lineOfSymmetryWithSmudgeRemoval(pattern.columns) ?: 0
+            val rowSymmetry = lineOfSymmetryWithSmudgeRemoval(pattern.rows) ?: 0
+            columnSymmetry + (rowSymmetry * 100)
+        }
     }
 }
