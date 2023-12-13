@@ -61,23 +61,23 @@ class Day13 {
             }
         }
 
-        fun findSymmetry(lines: List<List<Tile>>): Int { //lines can be either rows or columns, it does not matter
-            lines.indices.drop(1).forEach { index ->
+        fun linesOfSymmetry(lines: List<List<Tile>>): List<Int> { //lines can be either rows or columns, it does not matter
+            return lines.indices.drop(1).filter { index ->
                 val range = min(index, lines.size - index)
                 val left = lines.subList(index - range, index)
                 val right = lines.subList(index, index + range)
-                if (left.reversed() == right) return index
+                left.reversed() == right
             }
-            return -1 //no symmetry found
         }
 
-        fun summary(input: String): Int {
-            return parseInput(input).sumOf { pattern ->
-                val columnSymmetry = findSymmetry(pattern.columns)
-                val rowSymmetry = findSymmetry(pattern.rows)
-                if (columnSymmetry != -1) columnSymmetry
-                else rowSymmetry * 100
+        private fun summary(patterns: List<Pattern>) : Int {
+            return patterns.sumOf { pattern ->
+                val columnSymmetry = linesOfSymmetry(pattern.columns)
+                val rowSymmetry = linesOfSymmetry(pattern.rows)
+                columnSymmetry.sum() + rowSymmetry.sumOf { it * 100 }
             }
         }
+
+        fun summary(input: String) = summary(parseInput(input))
     }
 }

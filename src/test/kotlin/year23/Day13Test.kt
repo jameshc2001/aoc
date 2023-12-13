@@ -25,10 +25,10 @@ class Day13Test {
     @Test
     fun `can detect line of symmetry in pattern`() {
         val patterns = Day13.parseInput(sampleInput)
-        assertThat(Day13.findSymmetry(patterns.first().columns)).isEqualTo(5)
-        assertThat(Day13.findSymmetry(patterns.first().rows)).isEqualTo(-1)
-        assertThat(Day13.findSymmetry(patterns.last().columns)).isEqualTo(-1)
-        assertThat(Day13.findSymmetry(patterns.last().rows)).isEqualTo(4)
+        assertThat(Day13.linesOfSymmetry(patterns.first().columns)).isEqualTo(5)
+        assertThat(Day13.linesOfSymmetry(patterns.first().rows)).isEqualTo(-1)
+        assertThat(Day13.linesOfSymmetry(patterns.last().columns)).isEqualTo(-1)
+        assertThat(Day13.linesOfSymmetry(patterns.last().rows)).isEqualTo(4)
     }
 
     @Test
