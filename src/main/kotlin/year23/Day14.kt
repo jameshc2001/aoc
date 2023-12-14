@@ -6,7 +6,6 @@ class Day14 {
         operator fun plus(other: Pos) = Pos(x + other.x, y + other.y)
         operator fun minus(other: Pos) = Pos(x - other.x, y - other.y)
         operator fun times(scale: Int) = Pos(x * scale, y * scale)
-        operator fun Int.times(pos: Pos) = Pos(pos.x * this, pos.y * this)
         fun bounded(lower: Pos, upper: Pos) = x >= lower.x && y >= lower.y && x < upper.x && y < upper.y
     }
 
@@ -36,7 +35,7 @@ class Day14 {
             return Platform(roundRocks, cubeRocks, max)
         }
 
-        private fun rocksInDirection(pos: Pos, platform: Platform, direction: Pos): List<Pos> {
+        private fun getRocksUpToObstruction(pos: Pos, platform: Platform, direction: Pos): List<Pos> {
             var currentPos = pos
             val rocks = mutableListOf<Pos>()
             do {
@@ -48,7 +47,7 @@ class Day14 {
 
         fun tilt(platform: Platform, direction: Pos): Platform {
             val newRoundRocks = platform.roundRocks.map { pos ->
-                val rocksInDirection = rocksInDirection(pos, platform, direction)
+                val rocksInDirection = getRocksUpToObstruction(pos, platform, direction)
                 val end = rocksInDirection.last()
                 end - (direction.times(rocksInDirection.size))
             }
