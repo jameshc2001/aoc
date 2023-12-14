@@ -33,6 +33,36 @@ class Day14Test {
         assertThat(Day14.northLoad(input)).isEqualTo(113078)
     }
 
+    @Test
+    fun `can perform cycles`() {
+        val platform = Day14.parseInput(sampleInput)
+        val expected = Day14.parseInput(sampleAfter3Cycles)
+        val after3Cycles = (0 ..< 3).fold(platform) { acc, _ -> Day14.cycle(acc) }
+        assertThat(after3Cycles.roundRocks.toSet()).isEqualTo(expected.roundRocks.toSet())
+    }
+
+    @Test
+    fun `can get repeated section for sample input`() {
+        val platform = Day14.parseInput(sampleInput)
+        val expected = Day14.RepetitionInfo(
+            listOf(87, 69),
+            listOf(69, 69, 65, 64, 65, 63, 68)
+        )
+        val repetitionInfo = Day14.getRepetitionInfo(platform)
+        assertThat(repetitionInfo).isEqualTo(expected)
+    }
+
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day14.northLoadAfterCycles(sampleInput, 1000000000)).isEqualTo(64)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day14::class.java.getResourceAsStream("/year23/day14.txt")!!.bufferedReader().readText()
+        assertThat(Day14.northLoadAfterCycles(input, 1000000000)).isEqualTo(94255)
+    }
+
     private val sampleInput = """
         O....#....
         O.OO#....#
@@ -57,5 +87,18 @@ class Day14Test {
         ..O.......
         #....###..
         #....#....
+    """.trimIndent()
+
+    private val sampleAfter3Cycles = """
+        .....#....
+        ....#...O#
+        .....##...
+        ..O#......
+        .....OOO#.
+        .O#...O#.#
+        ....O#...O
+        .......OOO
+        #...O###.O
+        #.OOO#...O
     """.trimIndent()
 }
