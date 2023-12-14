@@ -4,6 +4,9 @@ class Day14 {
 
     data class Pos(val x: Int, val y: Int) {
         operator fun plus(other: Pos) = Pos(x + other.x, y + other.y)
+        operator fun minus(other: Pos) = Pos(x - other.x, y - other.y)
+        operator fun times(scale: Int) = Pos(x * scale, y * scale)
+        operator fun Int.times(pos: Pos) = Pos(pos.x * this, pos.y * this)
         fun bounded(lower: Pos, upper: Pos) = x >= lower.x && y >= lower.y && x < upper.x && y < upper.y
     }
 
@@ -33,21 +36,23 @@ class Day14 {
             return Platform(roundRocks, cubeRocks, max)
         }
 
-        fun tilt(platform: Platform, direction: Pos): Platform {
-            val (roundRocks, cubeRocks, max) = platform
-            var previousRoundRocks: List<Pos>
-            var currentRoundRocks = roundRocks
+        private fun rocksInDirection(pos: Pos, platform: Platform, direction: Pos): List<Pos> {
+            var currentPos = pos
+            val rocks = mutableListOf<Pos>()
             do {
-                previousRoundRocks = currentRoundRocks
-                currentRoundRocks = previousRoundRocks.map { oldPos ->
-                    val newPos = oldPos + direction
-                    if (newPos.bounded(Pos(0, 0), max)
-                        && newPos !in cubeRocks
-                        && newPos !in previousRoundRocks) newPos
-                    else oldPos
-                }
-            } while (previousRoundRocks != currentRoundRocks)
-            return platform.copy(roundRocks = currentRoundRocks)
+                currentPos += direction
+                if (currentPos in platform.roundRocks) rocks.add(currentPos)
+            } while (currentPos.bounded(Pos(0, 0), platform.max) && currentPos !in platform.cubeRocks)
+            return rocks + currentPos //current pos is end
+        }
+
+        fun tilt(platform: Platform, direction: Pos): Platform {
+            val newRoundRocks = platform.roundRocks.map { pos ->
+                val rocksInDirection = rocksInDirection(pos, platform, direction)
+                val end = rocksInDirection.last()
+                end - (direction.times(rocksInDirection.size))
+            }
+            return platform.copy(roundRocks = newRoundRocks)
         }
 
         fun northLoad(input: String): Int {
