@@ -18,7 +18,7 @@ class Day14Test {
     fun `can tilt north`() {
         val platform = Day14.parseInput(sampleInput)
         val expected = Day14.parseInput(sampleTiltedNorth)
-        val tiltedNorth = Day14.tiltNorth(platform)
+        val tiltedNorth = Day14.tilt(platform, Pos(0, 1))
         assertThat(tiltedNorth.roundRocks.toSet()).isEqualTo(expected.roundRocks.toSet())
     }
 

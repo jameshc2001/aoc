@@ -2,7 +2,10 @@ package year23
 
 class Day14 {
 
-    data class Pos(val x: Int, val y: Int)
+    data class Pos(val x: Int, val y: Int) {
+        operator fun plus(other: Pos) = Pos(x + other.x, y + other.y)
+        fun bounded(lower: Pos, upper: Pos) = x >= lower.x && y >= lower.y && x < upper.x && y < upper.y
+    }
     data class Platform(val roundRocks: List<Pos>, val cubeRocks: Set<Pos>, val max: Pos) {
         fun print() {
             (0 ..< max.y).reversed().forEach { y ->
@@ -36,7 +39,7 @@ class Day14 {
             return Platform(roundRocks, cubeRocks, max)
         }
 
-        fun tiltNorth(platform: Platform): Platform {
+        fun tilt(platform: Platform, direction: Pos): Platform {
             val (roundRocks, cubeRocks, max) = platform
 
             var previousRoundRocks: List<Pos>
@@ -44,8 +47,10 @@ class Day14 {
             do {
                 previousRoundRocks = currentRoundRocks
                 currentRoundRocks = previousRoundRocks.map { oldPos ->
-                    val newPos = Pos(oldPos.x, oldPos.y + 1)
-                    if (newPos.y < max.y && newPos !in cubeRocks && newPos !in previousRoundRocks) newPos
+                    val newPos = oldPos + direction
+                    if (newPos.bounded(Pos(0, 0), max)
+                        && newPos !in cubeRocks
+                        && newPos !in previousRoundRocks) newPos
                     else oldPos
                 }
             } while (previousRoundRocks != currentRoundRocks)
@@ -55,7 +60,7 @@ class Day14 {
 
         fun northLoad(input: String): Int {
             val platform = parseInput(input)
-            val tiltedNorth = tiltNorth(platform)
+            val tiltedNorth = tilt(platform, Pos(0, 1))
             return tiltedNorth.roundRocks.sumOf { pos -> pos.y + 1 }
         }
     }
