@@ -66,20 +66,25 @@ class Day14 {
         fun getRepetitionInfo(platform: Platform): RepetitionInfo {
             val loads = mutableListOf<Int>()
             var currentPlatform = platform
-            var repeatedSection = emptyList<Int>()
+            var repeatedSection: List<Int>
             do {
                 currentPlatform = cycle(currentPlatform)
                 loads.add(currentPlatform.northLoad())
-                if (loads.size >= 10) {
-                    (5 ..< minOf(loads.size / 2, 20)).forEach { sectionLength ->
-                        val a = loads.subList(loads.size - sectionLength, loads.size)
-                        val b = loads.subList(loads.size - 2 * sectionLength, loads.size - sectionLength)
-                        if (a == b) repeatedSection = a
-                    }
-                }
+                repeatedSection = findRepeatedSection(loads)
             } while (repeatedSection.isEmpty())
             val loadsBeforeRepeatedSection = loads.subList(0, loads.size - 2 * repeatedSection.size)
             return RepetitionInfo(loadsBeforeRepeatedSection, repeatedSection)
+        }
+
+        private fun findRepeatedSection(loads: MutableList<Int>): List<Int> {
+            if (loads.size >= 10) { //assume repetition has size between 5 and 20
+                (5..<minOf(loads.size / 2, 20)).forEach { sectionLength ->
+                    val left = loads.subList(loads.size - sectionLength, loads.size)
+                    val right = loads.subList(loads.size - 2 * sectionLength, loads.size - sectionLength)
+                    if (left == right) return left
+                }
+            }
+            return emptyList()
         }
 
         fun northLoadAfterCycles(input: String, cycles: Long): Int {
