@@ -26,6 +26,17 @@ class Day16Test {
         assertThat(Day16.energisedTiles(input)).isEqualTo(7236)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day16.bestEnergisedTiles(sampleInput)).isEqualTo(51)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day16::class.java.getResourceAsStream("/year23/day16.txt")!!.bufferedReader().readText()
+        assertThat(Day16.bestEnergisedTiles(input)).isEqualTo(7521)
+    }
+
     private val sampleInput = """
         .|...\....
         |.-.\.....

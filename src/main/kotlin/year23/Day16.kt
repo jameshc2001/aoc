@@ -55,9 +55,8 @@ class Day16 {
             return resultingBeamHeads ?: throw RuntimeException("could not calculate resulting beam heads")
         }
 
-        fun energisedTiles(input: String): Int {
-            val layout = parseInput(input)
-            var beamHeads = beamHeadStep(BeamHead(Pos(-1, 0), Pos(1, 0)), layout)
+        private fun energisedTiles(layout: Layout, startingBeamHead: BeamHead): Int {
+            var beamHeads = beamHeadStep(startingBeamHead, layout)
             val historicBeamHeads = mutableSetOf<BeamHead>()
 
             while (beamHeads.isNotEmpty()) {
@@ -70,19 +69,18 @@ class Day16 {
             return historicBeamHeads.map { it.pos }.toSet().size
         }
 
-        fun print(layout: Layout, energisedTiles: Set<Pos>) {
+        fun energisedTiles(input: String) = energisedTiles(parseInput(input), BeamHead(Pos(-1, 0), Pos(1, 0)))
+
+        fun bestEnergisedTiles(input: String): Int {
+            val layout = parseInput(input)
             val max = Pos(layout.map.keys.maxOf { it.x }, layout.map.keys.maxOf { it.y })
-            println()
-            (0 .. max.y).forEach { y ->
-                (0 .. max.x).forEach { x ->
-                    val pos = Pos(x, y)
-                    val char = if (pos in energisedTiles) '#' else layout.map[pos]!!
-                    print(char)
-                }
-                println()
+            val leftAndRightBeamHeads = (0..max.y).flatMap { y ->
+                listOf(BeamHead(Pos(-1, y), Pos(1, 0)), BeamHead(Pos(max.x + 1, y), Pos(-1, 0)))
             }
+            val topAndBottomBeamHeads = (0..max.x).flatMap { x ->
+                listOf(BeamHead(Pos(x, -1), Pos(0, 1)), BeamHead(Pos(x, max.y + 1), Pos(0, -1)))
+            }
+            return (leftAndRightBeamHeads + topAndBottomBeamHeads).maxOf { beamHead -> energisedTiles(layout, beamHead) }
         }
     }
-
-
 }
