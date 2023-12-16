@@ -58,18 +58,16 @@ class Day16 {
         fun energisedTiles(input: String): Int {
             val layout = parseInput(input)
             var beamHeads = beamHeadStep(BeamHead(Pos(-1, 0), Pos(1, 0)), layout)
-            val energisedTiles = mutableSetOf<Pos>()
             val historicBeamHeads = mutableSetOf<BeamHead>()
 
             while (beamHeads.isNotEmpty()) {
                 historicBeamHeads.addAll(beamHeads)
                 beamHeads = beamHeads.flatMap { beamHead ->
-                    energisedTiles.add(beamHead.pos) //assume we are on valid tile
                     beamHeadStep(beamHead, layout).filter { it !in historicBeamHeads }
                 }
             }
 
-            return energisedTiles.size
+            return historicBeamHeads.map { it.pos }.toSet().size
         }
 
         fun print(layout: Layout, energisedTiles: Set<Pos>) {
