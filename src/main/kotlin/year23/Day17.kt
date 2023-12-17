@@ -57,7 +57,7 @@ class Day17 {
                     }
                     .filter { v -> v.pos != u.pos - u.direction } //can't go backwards
                     .filter { v -> v.streak <= if (ultra) 10 else 3 } //can't go too fast
-                    .filter { v -> if (ultra && v.streak == 1 && u != startState) u.streak >= 4 else true  } //ultra turning rule
+                    .filter { v -> if (ultra && v.streak == 1 && u != startState) u.streak >= 4 else true } //ultra turning rule
                     .forEach { v ->
                         val newDistance = distances[u]!! + graph.weights[v.pos]!!
                         if (newDistance < (distances[v] ?: 100_000)) {
