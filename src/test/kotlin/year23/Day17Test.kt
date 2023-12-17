@@ -22,6 +22,12 @@ class Day17Test {
         assertThat(Day17.leastHeatLoss(sampleInput)).isEqualTo(102)
     }
 
+    @Test
+    fun `can get answer for part 1 using question input`() {
+        val input = Day17::class.java.getResourceAsStream("/year23/day17.txt")!!.bufferedReader().readText()
+        assertThat(Day17.leastHeatLoss(input)).isEqualTo(847)
+    }
+
     private val sampleInput = """
         2413432311323
         3215453535623

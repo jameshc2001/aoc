@@ -1,5 +1,7 @@
 package year23
 
+import java.util.PriorityQueue
+
 class Day17 {
 
     data class Pos(val x: Int, val y: Int) {
@@ -12,7 +14,7 @@ class Day17 {
         val weights: Map<Pos, Int> //all edges into a given node will have the same weight
     )
 
-    data class DijkstraResult(val distances: Map<Pos, Int>, val previous: Map<Pos, Pos>)
+    data class SearchState(val pos: Pos, val direction: Pos, val streak: Int)
 
     companion object {
         fun parseInput(input: String): Graph {
@@ -37,85 +39,58 @@ class Day17 {
             return Graph(nodes.toList(), neighbours, weights)
         }
 
-        private fun tooFast(previous: Map<Pos, Pos>, currentNode: Pos, nextNode: Pos): Boolean {
-            val a = nextNode
-            val b = currentNode
-            val c = previous[currentNode]
-            val d = previous[c]
-            val e = previous[d]
+        private fun dijkstra(graph: Graph, start: Pos, end: Pos): Int {
+            val startState = SearchState(start, Pos(0, 0), 0)
+            val distances = mutableMapOf(startState to 0)
+            val previous = mutableMapOf<SearchState, SearchState>()
+            val queue = PriorityQueue<SearchState>(compareBy { distances[it] })
+            queue.add(startState)
 
-            val path = listOf(a, b, c, d, e).reversed().filterNotNull().zipWithNext()
-            return if (path.size < 4) false
-            else path.map { (l, r) -> l - r }.toSet().size == 1
-        }
-
-        private fun dijkstra(graph: Graph, start: Pos, end: Pos): DijkstraResult {
-            val distances = graph.nodes.associateWith { 100_000 }.toMutableMap()
-            val previous = mutableMapOf<Pos, Pos>()
-            distances[start] = 0
-
-            val queue = graph.nodes.toMutableList()
             while (queue.isNotEmpty()) {
-                queue.sortBy { distances[it] }
-                val u = queue.removeFirst()
-                if (u == end) break
+                val u = queue.poll()
+                if (u.pos == end) return distances[u]!!
 
-                graph.neighbours[u]!!.filter { it in queue && !tooFast(previous, u, it) }.forEach { v ->
-                    val newDistance = distances[u]!! + graph.weights[v]!!
-                    if (newDistance < distances[v]!!) {
-                        distances[v] = newDistance
-                        previous[v] = u
+                graph.neighbours[u.pos]!!
+                    .map { v ->
+                        val direction = v - u.pos
+                        val streak = if (u.direction == direction) u.streak + 1 else 1
+                        SearchState(v, direction, streak)
                     }
-                }
+                    .filter { v -> v.pos != u.pos - u.direction } //can't go backwards
+                    .filter { v -> v.streak <= 3 }
+                    .forEach { v ->
+                        val newDistance = distances[u]!! + graph.weights[v.pos]!!
+                        if (newDistance < (distances[v] ?: 100_000)) {
+                            distances[v] = newDistance
+                            previous[v] = u
+                            queue.add(v)
+                        }
+                    }
             }
-
-            return DijkstraResult(distances, previous)
+            throw RuntimeException("failed to find path")
         }
-
-        private fun pathFromDijkstra(dijkstraResult: DijkstraResult, start: Pos, end: Pos): List<Pos> {
-            val path = mutableListOf(end)
-            while (path.last() != start) {
-                path.add(dijkstraResult.previous[path.last()]!!)
-            }
-            return path.reversed()
-        }
-
-        private fun edgeToRemove(path: List<Pos>) = path
-            .windowed(5).firstOrNull { nodes ->
-                nodes.zipWithNext().map { (a, b) -> a - b }.toSet().size == 1
-            }?.let { (_, _, _, a, b) -> a to b }
 
         fun leastHeatLoss(input: String): Int {
             val graph = parseInput(input)
             val start = Pos(0, 0)
-            val end = graph.nodes.maxBy { it.x + it.y } //bottom right
-            return dijkstra(graph, start, end).distances[end]!!
+            val end = graph.nodes.maxBy { it.x + it.y }
+            return dijkstra(graph, start, end)
         }
 
-//        fun oldLeastHeatLoss(input: String): Int {
-//            var graph = parseInput(input)
-//            val start = Pos(0, 0)
-//            val end = graph.nodes.maxBy { it.x + it.y } //bottom right
-//            var dijkstraResult: DijkstraResult
-//
-//            do {
-//                dijkstraResult = dijkstra(graph, start, end)
-//                val path = pathFromDijkstra(dijkstraResult, start, end)
-//                val edgeToRemove = edgeToRemove(path)
-//                printPath(graph, path)
-//
-//                if (edgeToRemove != null) {
-//                    val (a, b) = edgeToRemove
-//                    val newNeighbours = graph.neighbours.toMutableMap()
-//                    newNeighbours[a] = graph.neighbours[a]!!.filter { it != b }
-//                    graph = graph.copy(neighbours = newNeighbours)
-//                }
-//            } while (edgeToRemove != null)
-//
-//            return dijkstraResult.distances[end]!!
-//        }
+        private fun getAndPrintPath(graph: Graph, previous: Map<SearchState, SearchState>, start: SearchState, end: SearchState): String {
+            val path = pathFromDijkstra(previous, start, end)
+            return printPath(graph, path)
+        }
 
-        fun printPath(graph: Graph, path: List<Pos>): String {
+        private fun pathFromDijkstra(previous: Map<SearchState, SearchState>, start: SearchState, end: SearchState): List<Pos> {
+            val path = mutableListOf(end)
+            while (path.last() != start) {
+                path.add(previous[path.last()]!!)
+            }
+            return path.reversed().map { it.pos }
+        }
+
+        private fun printPath(graph: Graph, path: List<Pos>): String {
             val max = graph.nodes.maxBy { it.x + it.y }
             var output = "\n"
             (0 .. max.y).forEach { y ->
@@ -126,32 +101,6 @@ class Day17 {
                 output += "\n"
             }
             return output
-        }
-
-        fun leastHeatLossDFS(input: String): Int {
-            val graph = parseInput(input)
-            val start = Pos(0, 0)
-            val end = graph.nodes.maxBy { it.x + it.y } //bottom right
-            val dfs = dfs(graph, start, end)
-            return dfs
-        }
-
-        private val cache = mutableMapOf<Pos, Int>()
-
-        private fun dfs(graph: Graph, start: Pos, end: Pos, path: List<Pos> = emptyList()): Int {
-            val newPath = path.plus(start)
-            if (newPath.size >= 5) {
-                if (newPath.takeLast(5).zipWithNext().map { (a, b) -> a - b }.toSet().size == 1) return 100_000 //failure
-            }
-            if (start == end) return 0 //we have arrived
-            cache[start]?.let { return it }
-
-            val neighbours = graph.neighbours[start]!!.filter { it !in newPath }
-            if (neighbours.isEmpty()) return 100_000
-            val shortestDistance = neighbours.minOf { graph.weights[it]!! + dfs(graph, it, end, newPath) }
-
-            cache[start] = shortestDistance
-            return shortestDistance
         }
     }
 }
