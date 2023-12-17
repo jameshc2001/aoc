@@ -39,10 +39,9 @@ class Day17 {
             return Graph(nodes.toList(), neighbours, weights)
         }
 
-        private fun dijkstra(graph: Graph, start: Pos, end: Pos): Int {
+        private fun dijkstra(graph: Graph, start: Pos, end: Pos, ultra: Boolean): Int {
             val startState = SearchState(start, Pos(0, 0), 0)
             val distances = mutableMapOf(startState to 0)
-            val previous = mutableMapOf<SearchState, SearchState>()
             val queue = PriorityQueue<SearchState>(compareBy { distances[it] })
             queue.add(startState)
 
@@ -57,12 +56,12 @@ class Day17 {
                         SearchState(v, direction, streak)
                     }
                     .filter { v -> v.pos != u.pos - u.direction } //can't go backwards
-                    .filter { v -> v.streak <= 3 }
+                    .filter { v -> v.streak <= if (ultra) 10 else 3 } //can't go too fast
+                    .filter { v -> if (ultra && v.streak == 1 && u != startState) u.streak >= 4 else true  } //ultra turning rule
                     .forEach { v ->
                         val newDistance = distances[u]!! + graph.weights[v.pos]!!
                         if (newDistance < (distances[v] ?: 100_000)) {
                             distances[v] = newDistance
-                            previous[v] = u
                             queue.add(v)
                         }
                     }
@@ -70,37 +69,11 @@ class Day17 {
             throw RuntimeException("failed to find path")
         }
 
-        fun leastHeatLoss(input: String): Int {
+        fun leastHeatLoss(input: String, ultra: Boolean = false): Int {
             val graph = parseInput(input)
             val start = Pos(0, 0)
             val end = graph.nodes.maxBy { it.x + it.y }
-            return dijkstra(graph, start, end)
-        }
-
-        private fun getAndPrintPath(graph: Graph, previous: Map<SearchState, SearchState>, start: SearchState, end: SearchState): String {
-            val path = pathFromDijkstra(previous, start, end)
-            return printPath(graph, path)
-        }
-
-        private fun pathFromDijkstra(previous: Map<SearchState, SearchState>, start: SearchState, end: SearchState): List<Pos> {
-            val path = mutableListOf(end)
-            while (path.last() != start) {
-                path.add(previous[path.last()]!!)
-            }
-            return path.reversed().map { it.pos }
-        }
-
-        private fun printPath(graph: Graph, path: List<Pos>): String {
-            val max = graph.nodes.maxBy { it.x + it.y }
-            var output = "\n"
-            (0 .. max.y).forEach { y ->
-                (0 .. max.x).forEach { x ->
-                    val pos = Pos(x, y)
-                    output += if (pos in path) '#' else graph.weights[pos]!!.toString()
-                }
-                output += "\n"
-            }
-            return output
+            return dijkstra(graph, start, end, ultra)
         }
     }
 }
