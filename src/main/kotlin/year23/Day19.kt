@@ -1,8 +1,5 @@
 package year23
 
-import kotlin.math.max
-import kotlin.math.min
-
 class Day19 {
 
     data class Part(val categories: Map<Char, Long>) {
@@ -87,7 +84,7 @@ class Day19 {
         }
 
         fun validCombinations(input: String): Long {
-            val (workflows, parts) = parseInput(input)
+            val (workflows, _) = parseInput(input)
             val workflowsMap = workflows.associateBy { it.label }
             val minPart = Part(mapOf('x' to 1, 'm' to 1, 'a' to 1, 's' to 1))
             val maxPart = Part(mapOf('x' to 4000, 'm' to 4000, 'a' to 4000, 's' to 4000))
@@ -101,37 +98,48 @@ class Day19 {
             labelsToWorkflows: Map<String, Workflow>,
         ): Long {
             val rule = rules.first()
+            val comparison = rule.comparison
+            val result = rule.result
 
-            if (rule.comparison == null) {
-                return when (rule.result) {
-                    "A" -> minPart.categories
-                        .map { (c, l) -> maxPart.get(c) - l }
-                        .reduce { acc, l -> acc * l }
-                    "R" -> 0
-                    else -> combinations(labelsToWorkflows[rule.result]!!.rules, minPart, maxPart, labelsToWorkflows)
-                }
+            if (comparison == null) {
+                return safeComboReturn(result, minPart, maxPart, labelsToWorkflows)
             }
 
-            val combosIfFails = combinations(rules.drop(1), minPart, maxPart, labelsToWorkflows)
+            if (minPart.passes(rule) && maxPart.passes(rule)) {
+                return safeComboReturn(result, minPart, maxPart, labelsToWorkflows)
+            }
+
+            if (!minPart.passes(rule) && !maxPart.passes(rule)) {
+                return combinations(rules.drop(1), minPart, maxPart, labelsToWorkflows)
+            }
 
             val category = rule.category!!
             val amount = rule.amount!!
-            val result = rule.result
-            var newMax = maxPart
-            var newMin = minPart
 
-            if (rule.comparison == '<') newMax = maxPart.update(category, min(maxPart.get(category), amount - 1))
-            if (rule.comparison == '>') newMin = minPart.update(category, max(minPart.get(category), amount + 1))
-
-            when (result) {
-                "A" -> return minPart.categories
-                    .map { (c, l) -> maxPart.get(c) - l }
-                    .reduce { acc, l -> acc * l }
-                "R" -> return 0
+            if (minPart.passes(rule)) { //just min passes, comparison guaranteed to be <
+                val success = safeComboReturn(result, minPart, maxPart.update(category, amount - 1), labelsToWorkflows)
+                val failure = combinations(rules.drop(1), minPart.update(category, amount), maxPart, labelsToWorkflows)
+                return success + failure
             }
-            val combosIfPass = combinations(labelsToWorkflows[result]!!.rules, newMin, newMax, labelsToWorkflows)
 
-            return combosIfFails + combosIfPass
+            if (maxPart.passes(rule)) { //just max passes, comparison guaranteed to be >
+                val success = safeComboReturn(result, minPart.update(category, amount + 1), maxPart, labelsToWorkflows)
+                val failure = combinations(rules.drop(1), minPart, maxPart.update(category, amount), labelsToWorkflows)
+                return success + failure
+            }
+
+            throw RuntimeException("unreachable")
+        }
+
+        private fun safeComboReturn(
+            result: String,
+            minPart: Part,
+            maxPart: Part,
+            labelsToWorkflows: Map<String, Workflow>
+        ) = when (result) {
+            "A" -> minPart.categories.map { (c, l) -> maxPart.categories[c]!! - l + 1 }.reduce { acc, l -> acc * l }
+            "R" -> 0
+            else -> combinations(labelsToWorkflows[result]!!.rules, minPart, maxPart, labelsToWorkflows)
         }
     }
 }

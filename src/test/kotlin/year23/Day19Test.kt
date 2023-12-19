@@ -30,8 +30,13 @@ class Day19Test {
 
     @Test
     fun `can get answer for part 2 using sample input`() {
-        println(4000L * 4000L * 4000L * 4000L)
         assertThat(Day19.validCombinations(sampleInput)).isEqualTo(167409079868000)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day19::class.java.getResourceAsStream("/year23/day19.txt")!!.bufferedReader().readText()
+        assertThat(Day19.validCombinations(input)).isEqualTo(125051049836302)
     }
 
     private val sampleInput = """
