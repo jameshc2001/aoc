@@ -28,6 +28,12 @@ class Day19Test {
         assertThat(Day19.acceptedSum(input)).isEqualTo(389114)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        println(4000L * 4000L * 4000L * 4000L)
+        assertThat(Day19.validCombinations(sampleInput)).isEqualTo(167409079868000)
+    }
+
     private val sampleInput = """
         px{a<2006:qkq,m>2090:A,rfg}
         pv{a>1716:R,A}

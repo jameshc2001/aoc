@@ -1,8 +1,18 @@
 package year23
 
+import kotlin.math.max
+import kotlin.math.min
+
 class Day19 {
 
     data class Part(val categories: Map<Char, Long>) {
+        fun update(category: Char, amount: Long): Part {
+            val newCategories = categories.plus(category to amount)
+            return Part(newCategories)
+        }
+
+        fun get(category: Char): Long = categories[category]!!
+
         companion object {
             fun fromString(input: String): Part {
                 val regex = "[xmas]=[0-9]+".toRegex()
@@ -74,6 +84,54 @@ class Day19 {
             val (workflows, parts) = parseInput(input)
             val workflowsMap = workflows.associateBy { it.label }
             return parts.filter { it.accepted(workflowsMap) }.sumOf { it.categories.values.sum() }
+        }
+
+        fun validCombinations(input: String): Long {
+            val (workflows, parts) = parseInput(input)
+            val workflowsMap = workflows.associateBy { it.label }
+            val minPart = Part(mapOf('x' to 1, 'm' to 1, 'a' to 1, 's' to 1))
+            val maxPart = Part(mapOf('x' to 4000, 'm' to 4000, 'a' to 4000, 's' to 4000))
+            return combinations(workflowsMap["in"]!!.rules, minPart, maxPart, workflowsMap)
+        }
+
+        private fun combinations(
+            rules: List<Rule>,
+            minPart: Part,
+            maxPart: Part,
+            labelsToWorkflows: Map<String, Workflow>,
+        ): Long {
+            val rule = rules.first()
+
+            if (rule.comparison == null) {
+                return when (rule.result) {
+                    "A" -> minPart.categories
+                        .map { (c, l) -> maxPart.get(c) - l }
+                        .reduce { acc, l -> acc * l }
+                    "R" -> 0
+                    else -> combinations(labelsToWorkflows[rule.result]!!.rules, minPart, maxPart, labelsToWorkflows)
+                }
+            }
+
+            val combosIfFails = combinations(rules.drop(1), minPart, maxPart, labelsToWorkflows)
+
+            val category = rule.category!!
+            val amount = rule.amount!!
+            val result = rule.result
+            var newMax = maxPart
+            var newMin = minPart
+
+            if (rule.comparison == '<') newMax = maxPart.update(category, min(maxPart.get(category), amount - 1))
+            if (rule.comparison == '>') newMin = minPart.update(category, max(minPart.get(category), amount + 1))
+
+            when (result) {
+                "A" -> return minPart.categories
+                    .map { (c, l) -> maxPart.get(c) - l }
+                    .reduce { acc, l -> acc * l }
+                "R" -> return 0
+            }
+            val combosIfPass = combinations(labelsToWorkflows[result]!!.rules, newMin, newMax, labelsToWorkflows)
+
+            return combosIfFails + combosIfPass
         }
     }
 }
