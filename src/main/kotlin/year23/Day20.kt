@@ -64,7 +64,8 @@ class Day20 {
     }
 
     class Terminate(name: String): Module(name, mutableListOf()) {
-        override fun process(pulse: Pulse, sentBy: String) {}
+        var activated = false
+        override fun process(pulse: Pulse, sentBy: String) { if (pulse == Pulse.Low) activated = true }
     }
 
     data class Configuration(val modules: List<Module>) {
@@ -127,6 +128,17 @@ class Day20 {
                 high += module.pulsesSent[Pulse.High]!!
             }
             return low * high
+        }
+
+        fun pressesToActivateTerminator(input: String): Long {
+            val configuration = parseInput(input)
+            val terminator = configuration.modules.filterIsInstance<Terminate>().single()
+            var presses = 0L
+            while (!terminator.activated) {
+                configuration.pushButton()
+                presses++
+            }
+            return presses
         }
     }
 
