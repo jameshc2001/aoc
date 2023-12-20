@@ -27,7 +27,7 @@ class Day20Test {
 
     @Test
     fun `flip flop works as expected`() {
-        val flipFlop = Day20.FlipFlop("ff", mutableListOf(Day20.Output()))
+        val flipFlop = Day20.FlipFlop("ff", mutableListOf(Day20.Terminate("terminator")))
 
         flipFlop.process(Pulse.High, "user")
         assertThat(flipFlop.pulsesSent.values.sum()).isEqualTo(0)
@@ -43,7 +43,7 @@ class Day20Test {
 
     @Test
     fun `conjunction works as expected`() {
-        val conjunction = Day20.Conjunction("c", mutableListOf(Day20.Output()), mutableMapOf(
+        val conjunction = Day20.Conjunction("c", mutableListOf(Day20.Terminate("terminator")), mutableMapOf(
             "a" to Pulse.Low, "b" to Pulse.Low
         ))
         assertThat(conjunction.pulsesSent.values.sum()).isEqualTo(0)
@@ -69,6 +69,12 @@ class Day20Test {
     @Test
     fun `can get answer for part 1 using hard sample input`() {
         assertThat(Day20.pulsesProductAfter(hardSampleInput, 1000)).isEqualTo(11687500)
+    }
+
+    @Test
+    fun `can get answer for part 1 using question input`() {
+        val input = Day20::class.java.getResourceAsStream("/year23/day20.txt")!!.bufferedReader().readText()
+        assertThat(Day20.pulsesProductAfter(input, 1000)).isEqualTo(896998430)
     }
 
     private val easySampleInput = """

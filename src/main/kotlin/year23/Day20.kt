@@ -7,14 +7,23 @@ class Day20 {
     sealed class Module(val name: String, val outputs: MutableList<Module>) {
         val pulsesSent = mutableMapOf(Pulse.Low to 0L, Pulse.High to 0L)
 
-        abstract fun process(pulse: Pulse, sentBy: String)
+        private val pulseQueue = ArrayDeque<Pair<Pulse, String>>()
+        private fun addPulse(pulse: Pulse, sentBy: String) = pulseQueue.add(pulse to sentBy)
 
+        abstract fun process(pulse: Pulse, sentBy: String)
+        private fun processQueue() {
+            while (pulseQueue.isNotEmpty()) {
+                val (pulse, sentBy) = pulseQueue.removeFirst()
+                process(pulse, sentBy)
+            }
+        }
 
         fun sendPulse(pulse: Pulse) {
-            outputs.forEach {
+            outputs.forEach { module ->
                 pulsesSent[pulse] = pulsesSent[pulse]!! + 1
-                it.process(pulse, name)
+                module.addPulse(pulse, name)
             }
+            outputs.forEach { it.processQueue() }
         }
     }
 
@@ -54,7 +63,7 @@ class Day20 {
         override fun process(pulse: Pulse, sentBy: String) = sendPulse(pulse)
     }
 
-    class Output: Module("output", mutableListOf()) {
+    class Terminate(name: String): Module(name, mutableListOf()) {
         override fun process(pulse: Pulse, sentBy: String) {}
     }
 
@@ -78,12 +87,14 @@ class Day20 {
                         '&' -> Conjunction(nameWithoutType)
                         else -> throw RuntimeException("unknown module type")
                     }
-                }.associateBy { it.name }
-                    .plus("output" to Output())
-                    .also { namesToOutputNames["output"] = emptyList() }
+                }.associateBy { it.name }.toMutableMap()
 
-                //set outputs
-                namesToModules.values.forEach { module ->
+                //setup terminating modules
+                val terminators = namesToOutputNames.values.flatten().toSet() - namesToOutputNames.keys.toSet()
+                terminators.forEach { terminatorName -> namesToModules[terminatorName] = Terminate(terminatorName) }
+
+                //set outputs, terminators do not have outputs so filter them out
+                namesToModules.values.filter { it.name !in terminators }.forEach { module ->
                     val outputs = namesToOutputNames[module.name]!!
                         .map { namesToModules[it]!! }
                     module.outputs.addAll(outputs)
