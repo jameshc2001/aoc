@@ -80,7 +80,7 @@ class Day20Test {
     @Test
     fun `can get answer for part 2 using question input`() {
         val input = Day20::class.java.getResourceAsStream("/year23/day20.txt")!!.bufferedReader().readText()
-        assertThat(Day20.pressesToActivateTerminator(input)).isEqualTo(896998430)
+        assertThat(Day20.pressesToActivateTerminator(input)).isEqualTo(236095992539963)
     }
 
     private val easySampleInput = """

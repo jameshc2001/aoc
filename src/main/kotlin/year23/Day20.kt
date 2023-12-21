@@ -130,15 +130,38 @@ class Day20 {
             return low * high
         }
 
+        private fun findLCM(a: Long, b: Long): Long {
+            val larger = if (a > b) a else b
+            val maxLcm = a * b
+            var lcm = larger
+            while (lcm <= maxLcm) {
+                if (lcm % a == 0L && lcm % b == 0L) {
+                    return lcm
+                }
+                lcm += larger
+            }
+            return maxLcm
+        }
+
         fun pressesToActivateTerminator(input: String): Long {
             val configuration = parseInput(input)
             val terminator = configuration.modules.filterIsInstance<Terminate>().single()
+            val conjunction = configuration.modules.single { terminator in it.outputs } as Conjunction
+            val conjunctionFeeders = configuration.modules.filterIsInstance<Conjunction>().filter { conjunction in it.outputs }
+            val cfToCycle = mutableMapOf<String, Long>()
+
             var presses = 0L
-            while (!terminator.activated) {
+            while (cfToCycle.size != conjunctionFeeders.size) {
                 configuration.pushButton()
                 presses++
+                conjunctionFeeders.forEach { cf ->
+                    if (cf.pulsesSent[Pulse.High]!! > 0 && cfToCycle[cf.name] == null) {
+                        cfToCycle[cf.name] = presses
+                    }
+                }
             }
-            return presses
+
+            return cfToCycle.values.reduce { acc, l -> findLCM(acc, l) }
         }
     }
 
