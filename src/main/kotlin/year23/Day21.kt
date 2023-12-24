@@ -50,20 +50,13 @@ class Day21 {
             val (start, gardens) = parseInput(input)
             val size = gardens.maxOf { it.x } + 1
             val offset = (size / 2).toInt()
-            println(offset)
-            println(size)
-            val y1 = wrapAroundReachableGardens(start, gardens, size, offset).toLong()
-            val y2 = wrapAroundReachableGardens(start, gardens, size, size.toInt() + offset).toLong()
-            val y3 = wrapAroundReachableGardens(start, gardens, size, size.toInt() * 2 + offset).toLong()
-            println(y1)
-            println(y2)
-            println(y3)
 
-            val y = 202300
-            val what = 620348631910321
+            val y0 = wrapAroundReachableGardens(start, gardens, size, offset).toLong()
+            val y1 = wrapAroundReachableGardens(start, gardens, size, size.toInt() + offset).toLong()
+            val y2 = wrapAroundReachableGardens(start, gardens, size, size.toInt() * 2 + offset).toLong()
 
-            val x = steps
-            return y1 * (x - 1) * (x - 2) / 2 - y2 * x * (x - 2) + y3 * x * (x - 1) / 2
+            val x = steps / size
+            return y0 * (x - 1) * (x - 2) / 2 - y1 * x * (x - 2) + y2 * x * (x - 1) / 2
         }
     }
 }

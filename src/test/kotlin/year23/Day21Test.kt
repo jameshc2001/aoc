@@ -35,7 +35,7 @@ class Day21Test {
     @Test
     fun `can get answer for part 2 using question input`() {
         val input = Day21::class.java.getResourceAsStream("/year23/day21.txt")!!.bufferedReader().readText()
-        assertThat(Day21.infiniteReachableGardens(input, 0)).isEqualTo(1594)
+        assertThat(Day21.infiniteReachableGardens(input, 26501365)).isEqualTo(620348631910321)
     }
 
     private val sampleInput = """
