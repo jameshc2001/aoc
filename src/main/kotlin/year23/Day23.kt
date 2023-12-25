@@ -62,7 +62,7 @@ class Day23 {
             return dfsLongestPathLength(graph, emptyList(), start, end)
         }
 
-        fun Graph.simplified(): Graph {
+        private fun Graph.simplified(): Graph {
             var updatedNodes = nodes
             var updatedNeighbours = neighbours
             var updatedWeights = weights
@@ -73,21 +73,32 @@ class Day23 {
                 if (node == null) {
                     change = false
                 } else {
-                    updatedNodes = updatedNodes.minus(node)
+                    val (first, last) = updatedNeighbours[node]!!
+                    val section = ArrayDeque(listOf(first, node, last))
 
-                    val nodeNeighbours = updatedNeighbours[node]!! //guaranteed to have length 2
-                    updatedNeighbours = updatedNeighbours.minus(node).mapValues { (nNode, nNeighbours) -> //n = neighbour
-                        if (node in nNeighbours) {
-                            nNeighbours.minus(node) + (nodeNeighbours - nNode).single()
-                        } else nNeighbours
-                    }
+                    do {
+                        val next = updatedNeighbours[section.first()]!!.singleOrNull { it !in section }
+                        next?.let { section.addFirst(next) }
+                    } while (next != null && updatedNeighbours[next]!!.size == 2)
 
-                    val (n1, n2) = nodeNeighbours
+                    do {
+                        val next = updatedNeighbours[section.last()]!!.singleOrNull { it !in section }
+                        next?.let { section.addLast(next) }
+                    } while (next != null && updatedNeighbours[next]!!.size == 2)
 
-                    val edgeCost = updatedWeights[node to n1]!! + updatedWeights[node to n2]!!
-                    updatedWeights = updatedWeights.filterNot { it.key.first == node || it.key.second == node }
-                        .plus((n1 to n2) to edgeCost)
-                        .plus((n2 to n1) to edgeCost)
+                    val nodesToRemove = section.drop(1).dropLast(1)
+                    updatedNodes = updatedNodes.filter { it !in nodesToRemove }.toSet()
+
+                    updatedNeighbours = updatedNeighbours.filter { it.key !in nodesToRemove }
+                        .minus(section.first())
+                        .plus(section.first() to updatedNeighbours[section.first()]!!.filter { it !in section }.plus(section.last()))
+                        .minus(section.last())
+                        .plus(section.last() to updatedNeighbours[section.last()]!!.filter { it !in section }.plus(section.first()))
+
+                    val edgeCost = section.size - 1
+                    updatedWeights = updatedWeights.filter { it.key.first !in nodesToRemove && it.key.second !in nodesToRemove }
+                        .plus((section.first() to section.last()) to edgeCost)
+                        .plus((section.last() to section.first()) to edgeCost)
                 }
             } while (change)
 
