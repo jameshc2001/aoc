@@ -61,10 +61,8 @@ class Day23 {
 
                     updatedNodes = updatedNodes.filter { it !in nodesToRemove }.toSet()
 
-                    updatedNeighbours = updatedNeighbours.filter { it.key !in nodesToRemove }
-                        .minus(section.first())
+                    updatedNeighbours = updatedNeighbours.filter { it.key !in section }
                         .plus(section.first() to updatedNeighbours[section.first()]!!.filter { it !in section }.plus(section.last()))
-                        .minus(section.last())
                         .plus(section.last() to updatedNeighbours[section.last()]!!.filter { it !in section }.plus(section.first()))
 
                     updatedWeights = updatedWeights.filter { it.key.first !in nodesToRemove && it.key.second !in nodesToRemove }
