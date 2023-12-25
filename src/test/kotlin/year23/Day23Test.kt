@@ -19,13 +19,13 @@ class Day23Test {
 
     @Test
     fun `can get answer for part 1 using sample input`() {
-        assertThat(Day23.longestPathLength(sampleInput)).isEqualTo(94)
+        assertThat(Day23.longestWetPathLength(sampleInput)).isEqualTo(94)
     }
 
     @Test
     fun `can get answer for part 1 using question input`() {
         val input = Day23::class.java.getResourceAsStream("/year23/day23.txt")!!.bufferedReader().readText()
-        assertThat(Day23.longestPathLength(input)).isEqualTo(2222)
+        assertThat(Day23.longestWetPathLength(input)).isEqualTo(2222)
     }
 
     @Test

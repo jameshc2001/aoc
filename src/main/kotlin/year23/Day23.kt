@@ -35,13 +35,6 @@ class Day23 {
             return Graph(allPos.keys, neighbours, weights)
         }
 
-        fun longestPathLength(input: String): Int {
-            val graph = parseInput(input)
-            val start = graph.nodes.minBy { it.y }
-            val end = graph.nodes.maxBy { it.y }
-            return dfsLongestPathLength(graph, emptyList(), start, end)
-        }
-
         private fun dfsLongestPathLength(graph: Graph, path: List<Pos>, current: Pos, end: Pos): Int {
             if (current == end) return 0
 
@@ -52,13 +45,6 @@ class Day23 {
             return options.maxOf { next ->
                 graph.weights[current to next]!! + dfsLongestPathLength(graph, newPath, next, end)
             }
-        }
-
-        fun longestDryPathLength(input: String): Int {
-            val graph = parseInput(input, true).simplified()
-            val start = graph.nodes.minBy { it.y }
-            val end = graph.nodes.maxBy { it.y }
-            return dfsLongestPathLength(graph, emptyList(), start, end)
         }
 
         private fun Graph.simplified(): Graph {
@@ -106,5 +92,14 @@ class Day23 {
 
             return section
         }
+
+        private fun longestPathLength(graph: Graph): Int {
+            val start = graph.nodes.minBy { it.y }
+            val end = graph.nodes.maxBy { it.y }
+            return dfsLongestPathLength(graph, emptyList(), start, end)
+        }
+
+        fun longestWetPathLength(input: String) = longestPathLength(parseInput(input))
+        fun longestDryPathLength(input: String) = longestPathLength(parseInput(input, true).simplified())
     }
 }
