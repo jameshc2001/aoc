@@ -66,26 +66,13 @@ class Day23 {
             var updatedNeighbours = neighbours
             var updatedWeights = weights
 
-            var change = true
             do {
                 val node = updatedNodes.firstOrNull { updatedNeighbours[it]!!.size == 2 }
-                if (node == null) {
-                    change = false
-                } else {
-                    val (first, last) = updatedNeighbours[node]!!
-                    val section = ArrayDeque(listOf(first, node, last))
-
-                    do {
-                        val next = updatedNeighbours[section.first()]!!.singleOrNull { it !in section }
-                        next?.let { section.addFirst(next) }
-                    } while (next != null && updatedNeighbours[next]!!.size == 2)
-
-                    do {
-                        val next = updatedNeighbours[section.last()]!!.singleOrNull { it !in section }
-                        next?.let { section.addLast(next) }
-                    } while (next != null && updatedNeighbours[next]!!.size == 2)
-
+                if (node != null) {
+                    val section = getSection(updatedNeighbours, node)
                     val nodesToRemove = section.drop(1).dropLast(1)
+                    val edgeCost = section.size - 1
+
                     updatedNodes = updatedNodes.filter { it !in nodesToRemove }.toSet()
 
                     updatedNeighbours = updatedNeighbours.filter { it.key !in nodesToRemove }
@@ -94,14 +81,30 @@ class Day23 {
                         .minus(section.last())
                         .plus(section.last() to updatedNeighbours[section.last()]!!.filter { it !in section }.plus(section.first()))
 
-                    val edgeCost = section.size - 1
                     updatedWeights = updatedWeights.filter { it.key.first !in nodesToRemove && it.key.second !in nodesToRemove }
                         .plus((section.first() to section.last()) to edgeCost)
                         .plus((section.last() to section.first()) to edgeCost)
                 }
-            } while (change)
+            } while (node != null)
 
             return Graph(updatedNodes, updatedNeighbours, updatedWeights)
+        }
+
+        private fun getSection(neighbours: Map<Pos, List<Pos>>, start: Pos): ArrayDeque<Pos> {
+            val (first, last) = neighbours[start]!!
+            val section = ArrayDeque(listOf(first, start, last))
+
+            do {
+                val next = neighbours[section.first()]!!.singleOrNull { it !in section }
+                next?.let { section.addFirst(next) }
+            } while (next != null && neighbours[next]!!.size == 2)
+
+            do {
+                val next = neighbours[section.last()]!!.singleOrNull { it !in section }
+                next?.let { section.addLast(next) }
+            } while (next != null && neighbours[next]!!.size == 2)
+
+            return section
         }
     }
 }
