@@ -9,8 +9,12 @@ class Day22 {
         operator fun plus(other: Pos) = Pos(x + other.x, y + other.y, z + other.z)
         operator fun div(num: Int) = Pos(x / num, y / num, z /num)
 
-        fun length() = sqrt((x * x + y * y + z * z).toDouble())
+        private fun length() = sqrt((x * x + y * y + z * z).toDouble())
         fun safeUnit() = length().toInt().let { if (it == 0) this else this / it }
+
+        companion object {
+            val down = Pos(0, 0, -1)
+        }
     }
 
     data class Brick(val id: Int, val cubes: List<Pos>) {
@@ -38,22 +42,26 @@ class Day22 {
                 }
         }
 
-        private val down = Pos(0, 0, -1)
-
         private fun Brick.canMoveDown(occupied: Set<Pos>): Boolean {
             val lowestZ = cubes.minOf { it.z }
             val lowestCubes = cubes.filter { it.z == lowestZ }
-            return !lowestCubes.any { cube -> cube.z == 1 || cube + down in occupied }
+            return !lowestCubes.any { cube -> cube.z == 1 || cube + Pos.down in occupied }
         }
         
         private fun Brick.canRemove(bricks: List<Brick>): Boolean {
             val otherBricks = bricks - this
-            val bricksAbove = otherBricks.filter { other -> other.cubes.any { it + down in this.cubes } }
+            val bricksAbove = otherBricks.filter { other -> other.cubes.any { it + Pos.down in this.cubes } }
             val occupied = otherBricks.map { it.cubes }.flatten().toSet()
             return !bricksAbove.any { it.canMoveDown(occupied) } //no bricks allowed to fall if this one is removed
         }
 
-        //optimize by not simulating bricks that have settled
+        private fun Brick.bricksInReaction(bricks: List<Brick>): Int {
+            val otherBricks = bricks - this
+            val simulated = simulate(otherBricks)
+            return (simulated.toSet() - otherBricks.toSet()).size
+        }
+
+        //could optimize by not simulating bricks that have settled
         private fun simulate(bricks: List<Brick>): List<Brick> {
             var simulatedBricks = bricks
             var bricksThatFell: Int
@@ -61,21 +69,15 @@ class Day22 {
                 bricksThatFell = 0
                 val occupied = simulatedBricks.map { it.cubes }.flatten().toSet()
                 simulatedBricks = simulatedBricks.map { brick ->
-                    if (brick.canMoveDown(occupied)) brick.move(down).also { bricksThatFell++ } else brick
+                    if (brick.canMoveDown(occupied)) brick.move(Pos.down).also { bricksThatFell++ } else brick
                 }
             } while (bricksThatFell != 0)
             return simulatedBricks
         }
-        
+
         fun removableBricks(input: String): Int {
             val bricks = simulate(parseInput(input))
             return bricks.count { it.canRemove(bricks) }
-        }
-
-        private fun Brick.bricksInReaction(bricks: List<Brick>): Int {
-            val otherBricks = bricks - this
-            val simulated = simulate(otherBricks)
-            return (simulated.toSet() - otherBricks.toSet()).size
         }
 
         fun chainReactionSum(input: String): Int {
