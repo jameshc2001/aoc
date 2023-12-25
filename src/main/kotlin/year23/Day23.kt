@@ -42,7 +42,6 @@ class Day23 {
             return dfsLongestPathLength(graph, emptyList(), start, end)
         }
 
-        //change path to just be prev? depends on graph
         private fun dfsLongestPathLength(graph: Graph, path: List<Pos>, current: Pos, end: Pos): Int {
             if (current == end) return 0
 
