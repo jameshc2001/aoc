@@ -7,10 +7,11 @@ class Day23 {
     data class Graph(
         val nodes: Set<Pos>,
         val neighbours: Map<Pos, List<Pos>>,
+        val weights: Map<Pair<Pos, Pos>, Int>
     )
 
     companion object {
-        fun parseInput(input: String): Graph {
+        fun parseInput(input: String, dry: Boolean = false): Graph {
             val allPos = input.lines().map { it.replace("\n", "").replace("\r", "") }
                 .flatMapIndexed { y, line ->
                     line.mapIndexedNotNull { x, c ->
@@ -18,8 +19,9 @@ class Day23 {
                     }
                 }.toMap()
             val neighbours = allPos.entries.associate { (pos, type) ->
-                pos to when (type) {
-                    '.' -> pos.adjacent().filter { it in allPos.keys }
+                val validAdjacent = pos.adjacent().filter { it in allPos.keys }
+                pos to if (dry) validAdjacent else when (type) {
+                    '.' -> validAdjacent
                     '>' -> listOf(Pos(pos.x + 1, pos.y))
                     '<' -> listOf(Pos(pos.x - 1, pos.y))
                     '^' -> listOf(Pos(pos.x, pos.y - 1))
@@ -27,7 +29,10 @@ class Day23 {
                     else -> throw RuntimeException("unknown type $type")
                 }
             }
-            return Graph(allPos.keys, neighbours)
+            val weights = neighbours.flatMap { (pos, posNeighbours) ->
+                posNeighbours.map { neighbour -> (pos to neighbour) to 1 }
+            }.toMap()
+            return Graph(allPos.keys, neighbours, weights)
         }
 
         fun longestPathLength(input: String): Int {
@@ -45,11 +50,16 @@ class Day23 {
             if (options.isEmpty()) return -10000000
 
             val newPath = path + current
-            return 1 + options.maxOf { next ->
-                dfsLongestPathLength(graph, newPath, next, end)
+            return options.maxOf { next ->
+                graph.weights[current to next]!! + dfsLongestPathLength(graph, newPath, next, end)
             }
         }
+
+        fun longestDryPathLength(input: String): Int {
+            val graph = parseInput(input, true)
+            val start = graph.nodes.minBy { it.y }
+            val end = graph.nodes.maxBy { it.y }
+            return dfsLongestPathLength(graph, emptyList(), start, end)
+        }
     }
-
-
 }
