@@ -42,7 +42,7 @@ class Day23Test {
     @Test
     fun `can get answer for part 2 using question input`() {
         val input = Day23::class.java.getResourceAsStream("/year23/day23.txt")!!.bufferedReader().readText()
-        assertThat(Day23.longestDryPathLength(input)).isEqualTo(154)
+        assertThat(Day23.longestDryPathLength(input)).isEqualTo(6590)
     }
 
     private val sampleInput = """

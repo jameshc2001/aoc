@@ -56,10 +56,42 @@ class Day23 {
         }
 
         fun longestDryPathLength(input: String): Int {
-            val graph = parseInput(input, true)
+            val graph = parseInput(input, true).simplified()
             val start = graph.nodes.minBy { it.y }
             val end = graph.nodes.maxBy { it.y }
             return dfsLongestPathLength(graph, emptyList(), start, end)
+        }
+
+        fun Graph.simplified(): Graph {
+            var updatedNodes = nodes
+            var updatedNeighbours = neighbours
+            var updatedWeights = weights
+
+            var change = true
+            do {
+                val node = updatedNodes.firstOrNull { updatedNeighbours[it]!!.size == 2 }
+                if (node == null) {
+                    change = false
+                } else {
+                    updatedNodes = updatedNodes.minus(node)
+
+                    val nodeNeighbours = updatedNeighbours[node]!! //guaranteed to have length 2
+                    updatedNeighbours = updatedNeighbours.minus(node).mapValues { (nNode, nNeighbours) -> //n = neighbour
+                        if (node in nNeighbours) {
+                            nNeighbours.minus(node) + (nodeNeighbours - nNode).single()
+                        } else nNeighbours
+                    }
+
+                    val (n1, n2) = nodeNeighbours
+
+                    val edgeCost = updatedWeights[node to n1]!! + updatedWeights[node to n2]!!
+                    updatedWeights = updatedWeights.filterNot { it.key.first == node || it.key.second == node }
+                        .plus((n1 to n2) to edgeCost)
+                        .plus((n2 to n1) to edgeCost)
+                }
+            } while (change)
+
+            return Graph(updatedNodes, updatedNeighbours, updatedWeights)
         }
     }
 }
