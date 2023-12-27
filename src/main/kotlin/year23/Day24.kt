@@ -11,7 +11,7 @@ class Day24 {
         operator fun unaryMinus() = Pos(-x, -y, -z)
 
         private fun length() = sqrt((x * x + y * y + z * z))
-        fun unit() = if (length() == 0.0) Pos(0.0, 0.0, 0.0) else this / length()
+        fun unit() = length().let { l -> if (l == 0.0) Pos(l, l, l) else this / l }
     }
 
     data class Hailstone(val pos: Pos, val vel: Pos) {
@@ -56,6 +56,4 @@ class Day24 {
                 .count { pos -> pos.x >= min && pos.y >= min && pos.x <= max && pos.y <= max }
         }
     }
-
-
 }
