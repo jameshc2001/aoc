@@ -2,30 +2,37 @@ package year23
 
 class Day25 {
 
-    @JvmInline
-    value class Node(val value: String)
-
-    data class Graph(val nodes: Set<Node>, val neighbours: Map<Node, Set<Node>>)
-
     companion object {
-        fun parseInput(input: String): Graph {
+        fun parseInput(input: String): Map<String, Set<String>> {
             val regex = "[a-z]+".toRegex()
-            val nodes = mutableSetOf<Node>()
-            val nodeToNeighbours = mutableMapOf<Node, Set<Node>>()
+            val nodeToNeighbours = mutableMapOf<String, Set<String>>()
 
             input.lines().forEach { line ->
-                val node = Node(line.substringBefore(':'))
-                val neighbours = regex.findAll(line.substringAfter(':')).map { Node(it.value) }.toSet()
+                val node = line.substringBefore(':')
+                val neighbours = regex.findAll(line.substringAfter(':')).map { it.value }.toSet()
 
-                nodes.add(node)
                 nodeToNeighbours[node] = (nodeToNeighbours[node] ?: emptySet()) + neighbours
                 neighbours.forEach { neighbour ->
                     nodeToNeighbours[neighbour] = (nodeToNeighbours[neighbour] ?: emptySet()) + node
                 }
             }
 
-            return Graph(nodes, nodeToNeighbours)
+            return nodeToNeighbours
+        }
+
+        private fun externalNeighbours(
+            component: Map<String, Set<String>>,
+            graph: Map<String, Set<String>>,
+            node: String
+        ) = (graph[node]!! - component.keys).size
+
+        fun componentProduct(input: String): Int {
+            val graph = parseInput(input)
+            val component = graph.toMutableMap()
+            while (component.keys.sumOf { externalNeighbours(component, graph, it) } != 3) {
+                component.remove(component.maxBy { (node, _) -> externalNeighbours(component, graph, node) }.key)
+            }
+            return component.size * (graph.keys - component.keys).size
         }
     }
-
 }
