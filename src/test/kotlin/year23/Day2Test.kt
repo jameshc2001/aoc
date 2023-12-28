@@ -36,7 +36,7 @@ class Day2Test {
     @Test
     fun `can get answer for part 2 using question input`() {
         val input = Day2::class.java.getResourceAsStream("/year23/day2.txt")!!.bufferedReader().readText()
-        assertThat(Day2.minimumSetPowers(input)).isEqualTo(2286)
+        assertThat(Day2.minimumSetPowers(input)).isEqualTo(54911)
     }
 
     private val sampleInput = """
