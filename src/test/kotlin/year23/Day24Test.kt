@@ -39,6 +39,17 @@ class Day24Test {
         assertThat(Day24.intersectionsIn(input, 200000000000000.0, 400000000000000.0)).isEqualTo(16665)
     }
 
+    @Test
+    fun `can get answer for part 2 using sample input`() {
+        assertThat(Day24.startingSum(sampleInput)).isEqualTo(47)
+    }
+
+    @Test
+    fun `can get answer for part 2 using question input`() {
+        val input = Day24::class.java.getResourceAsStream("/year23/day24.txt")!!.bufferedReader().readText()
+        assertThat(Day24.startingSum(input)).isEqualTo(769840447420960)
+    }
+
     private val sampleInput = """
         19, 13, 30 @ -2,  1, -2
         18, 19, 22 @ -1, -1, -2
